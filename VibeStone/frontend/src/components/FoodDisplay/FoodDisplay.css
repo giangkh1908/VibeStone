@@ -1,0 +1,58 @@
+.food-display{
+    margin-top: 30px;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 20px;
+}
+
+.food-display h2{
+    font-size: max(2vw,24px);
+    font-weight: 600;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.food-display-list{
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    margin-top: 30px;
+    gap: 30px;
+    row-gap: 50px;
+}
+
+.food-item-container {
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.food-item-container:hover {
+    transform: translateY(-5px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+    .food-display-list {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 900px) {
+    .food-display-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .food-display-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+.no-products {
+    grid-column: 1 / -1;
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    padding: 30px;
+}
