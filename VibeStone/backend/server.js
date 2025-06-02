@@ -17,6 +17,7 @@ app.use(express.json());
 app.use(cors({
   origin: [
     'https://www.vibestoneoficial.store/', // domain
+    'https://vibestoneoficial.store',
     'https://vibe-stone-frontend.vercel.app', // Thay bằng URL frontend thực tế
     'http://localhost:5173',
     'http://localhost:5174'
