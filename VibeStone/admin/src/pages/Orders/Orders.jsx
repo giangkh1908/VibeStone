@@ -16,7 +16,9 @@ const Order = () => {
   const fetchAllOrders = async () => {
     const response = await axios.get(`${url}/api/order/list`)
     if (response.data.success) {
-      setOrders(response.data.data.reverse());
+      // Sắp xếp đơn hàng từ mới nhất đến cũ nhất dựa trên trường date
+      const sortedOrders = response.data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setOrders(sortedOrders);
     }
     else {
       toast.error("Error")
