@@ -17,11 +17,11 @@ export const sendVerificationEmail = async (email, verificationToken, userName) 
   try {
     const transporter = createTransporter();
     
-    // Sử dụng FRONTEND_URL từ environment
-    const frontendUrl = process.env.FRONTEND_URL || 'https://www.vibestoneoficial.store';
+    // FORCE sử dụng domain đúng - override environment variable
+    const frontendUrl = 'https://www.vibestoneoficial.store'; // Hard-code để đảm bảo
     const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}&email=${email}`;
     
-    console.log('Generated verification URL:', verificationUrl); // Debug log
+    console.log('Generated verification URL:', verificationUrl);
     
     const mailOptions = {
       from: `"VibeStone - Cửa hàng phong thủy" <${process.env.EMAIL_USER || 'quangvu1922@gmail.com'}>`,
@@ -38,37 +38,22 @@ export const sendVerificationEmail = async (email, verificationToken, userName) 
             <h2 style="color: #333; margin-bottom: 20px;">Chào mừng ${userName || 'bạn'} đến với VibeStone! 🎉</h2>
             
             <p style="color: #666; line-height: 1.6; margin-bottom: 20px;">
-              Cảm ơn bạn đã đăng ký tài khoản tại VibeStone. Để hoàn tất quá trình đăng ký và bắt đầu khám phá bộ sưu tập vật phẩm phong thủy của chúng tôi, vui lòng xác thực email của bạn.
+              Cảm ơn bạn đã đăng ký tài khoản tại VibeStone. Để hoàn tất quá trình đăng ký, vui lòng xác thực email của bạn.
             </p>
             
             <div style="text-align: center; margin: 30px 0;">
               <a href="${verificationUrl}" 
                  style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
                         color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; 
-                        font-weight: bold; font-size: 16px; transition: all 0.3s ease;">
+                        font-weight: bold; font-size: 16px;">
                 ✅ Xác Thực Email Ngay
               </a>
             </div>
-            
-            <p style="color: #999; font-size: 14px; line-height: 1.6;">
-              <strong>Lưu ý:</strong> Link xác thực này sẽ hết hạn sau 24 giờ. Nếu bạn không thực hiện xác thực trong thời gian này, bạn sẽ cần đăng ký lại.
-            </p>
-            
-            <hr style="border: none; border-top: 1px solid #eee; margin: 20px 0;">
             
             <p style="color: #999; font-size: 12px; text-align: center;">
               Nếu bạn không thể click vào nút trên, hãy copy và paste link sau vào trình duyệt:<br>
               <span style="word-break: break-all; color: #667eea;">${verificationUrl}</span>
             </p>
-            
-            <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
-              <p style="color: #999; font-size: 12px; margin: 0;">
-                © 2024 VibeStone - Mang lại năng lượng tích cực cho cuộc sống của bạn
-              </p>
-              <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
-                🌐 Website: ${frontendUrl} | 📧 Email: support@vibestone.com
-              </p>
-            </div>
           </div>
         </div>
       `
