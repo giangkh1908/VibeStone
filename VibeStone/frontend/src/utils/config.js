@@ -16,8 +16,8 @@ export const getApiUrl = () => {
 };
 
 export const getFrontendUrl = () => {
-  if (import.meta.env.VITE_FRONTEND_URL) {
-    return import.meta.env.VITE_FRONTEND_URL;
+  if (import.meta.env.VITE_BASE_URL) {
+    return import.meta.env.VITE_BASE_URL;
   }
   
   return window.location.origin;

@@ -139,53 +139,50 @@ const registerUser = async (req, res) => {
 }
 
 // Verify email
-const verifyEmail = async (req, res) => {
+const verifyEmailToken = async (req, res) => {
     try {
-        const { token, email } = req.query;
-        
-        if (!token || !email) {
-            return res.status(400).json({ 
-                success: false, 
-                message: "Token xác thực và email là bắt buộc" 
-            });
-        }
+        const { token, email } = req.query; // Lấy từ query params
 
+        console.log('Verifying email:', { email, token });
+
+        // Tìm user với email và verification token
         const user = await userModel.findOne({ 
             email, 
             verificationToken: token,
-            verificationTokenExpires: { $gt: Date.now() }
+            verificationTokenExpires: { $gt: new Date() } // Token chưa hết hạn
         });
 
         if (!user) {
             return res.status(400).json({ 
                 success: false, 
-                message: "Token xác thực không hợp lệ hoặc đã hết hạn" 
+                message: "Token xác thực không hợp lệ hoặc đã hết hạn." 
             });
         }
 
-        // Update user as verified
+        // Cập nhật user thành verified
         await userModel.findByIdAndUpdate(user._id, {
             isVerified: true,
             verificationToken: undefined,
             verificationTokenExpires: undefined
         });
 
-        // Send welcome email
-        await sendWelcomeEmail(email, user.name);
-
-        res.status(200).json({ 
+        // Gửi email chào mừng
+        const welcomeEmailResult = await sendWelcomeEmail(email, user.name);
+        
+        res.json({ 
             success: true, 
-            message: "Xác thực email thành công! Bạn có thể đăng nhập ngay bây giờ.",
+            message: "Email đã được xác thực thành công! Bạn có thể đăng nhập ngay bây giờ.",
             userName: user.name
         });
+
     } catch (error) {
-        console.error("Email verification error:", error);
+        console.error('Email verification error:', error);
         res.status(500).json({ 
             success: false, 
-            message: "Lỗi server khi xác thực email" 
+            message: "Có lỗi xảy ra khi xác thực email. Vui lòng thử lại." 
         });
     }
-}
+};
 
 // Resend verification email
 const resendVerification = async (req, res) => {
@@ -246,4 +243,4 @@ const resendVerification = async (req, res) => {
     }
 }
 
-export { loginUser, registerUser, verifyEmail, resendVerification };
+export { loginUser, registerUser, verifyEmailToken };
