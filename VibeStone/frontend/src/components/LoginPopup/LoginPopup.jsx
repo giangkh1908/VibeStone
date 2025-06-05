@@ -36,6 +36,20 @@ const LoginPopup = ({ setShowLogin }) => {
         try {
             const response = await axios.post(new_url, data);
             if (response.data.success) {
+                if (response.data.needVerification) {
+                    // Trường hợp cần xác thực email
+                    toast.success(response.data.message, {
+                        position: "top-right",
+                        autoClose: 7000, // Hiển thị lâu hơn để user đọc được
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                    setShowLogin(false);
+                    return;
+                }
+                
                 // Lưu token vào state và localStorage
                 setToken(response.data.token)
                 localStorage.setItem("token", response.data.token)
@@ -54,6 +68,7 @@ const LoginPopup = ({ setShowLogin }) => {
                         // Đồng bộ từng sản phẩm lên database
                         for (const itemId in cartItems) {
                             const quantity = cartItems[itemId];
+                            // Gọi API add cart nhiều lần theo số lượng
                             for (let i = 0; i < quantity; i++) {
                                 await axios.post(url + "/api/cart/add", { itemId }, { headers: { token: response.data.token } });
                             }
@@ -70,10 +85,32 @@ const LoginPopup = ({ setShowLogin }) => {
                 setShowLogin(false)
             }
             else {
-                notifyError(response.data.message)
+                if (response.data.needVerification) {
+                    toast.info("Tài khoản chưa được xác thực. Vui lòng kiểm tra email.", {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                } else {
+                    notifyError(response.data.message)
+                }
             }
         } catch (error) {
-            notifyError(error.response?.data?.message || "Đã xảy ra lỗi")
+            if (error.response?.data?.needVerification) {
+                toast.info("Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.", {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            } else {
+                notifyError(error.response?.data?.message || "Đã xảy ra lỗi")
+            }
         }
     }
 

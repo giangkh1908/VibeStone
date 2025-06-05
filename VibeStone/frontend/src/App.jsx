@@ -13,6 +13,7 @@ import Verify from './pages/Verify/Verify'
 import TuViPage from './pages/TuViPage/TuViPage'
 import Store from './pages/Store/Store'
 import ScrollToTop from './components/ScrollToTop/ScrollToTop'
+import VerifyEmail from './pages/VerifyEmail/VerifyEmail';
 
 const App = () => {
 
@@ -33,6 +34,7 @@ const App = () => {
           <Route path='/myorders' element={<MyOrders />}/>
           <Route path='/verify' element={<Verify />}/>
           <Route path="/store" element={<Store />} />
+          <Route path='/verify-email' element={<VerifyEmail />} />
         </Routes>
       </div>
       <Footer />

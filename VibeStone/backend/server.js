@@ -10,8 +10,8 @@ import analyzeRouter from "./routes/analyze.js";
 
 // app config
 const app = express();
-const port = process.env.PORT || 5000;
-
+const port =  5000;
+// process.env.PORT ||
 // middlewares
 app.use(express.json());
 app.use(cors({
