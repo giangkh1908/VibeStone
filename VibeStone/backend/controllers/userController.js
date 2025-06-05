@@ -141,15 +141,15 @@ const registerUser = async (req, res) => {
 // Verify email
 const verifyEmailToken = async (req, res) => {
     try {
-        const { token, email } = req.query; // Lấy từ query params
+        const { token, email } = req.query;
 
-        console.log('Verifying email:', { email, token });
+        console.log('Verifying email:', { email, token: token?.substring(0, 10) + '...' });
 
         // Tìm user với email và verification token
         const user = await userModel.findOne({ 
             email, 
             verificationToken: token,
-            verificationTokenExpires: { $gt: new Date() } // Token chưa hết hạn
+            verificationTokenExpires: { $gt: new Date() }
         });
 
         if (!user) {
@@ -166,9 +166,8 @@ const verifyEmailToken = async (req, res) => {
             verificationTokenExpires: undefined
         });
 
-        // Gửi email chào mừng
-        const welcomeEmailResult = await sendWelcomeEmail(email, user.name);
-        
+        console.log('Email verified successfully for user:', email);
+
         res.json({ 
             success: true, 
             message: "Email đã được xác thực thành công! Bạn có thể đăng nhập ngay bây giờ.",

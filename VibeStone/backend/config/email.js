@@ -17,7 +17,11 @@ export const sendVerificationEmail = async (email, verificationToken, userName) 
   try {
     const transporter = createTransporter();
     
-    const verificationUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/verify-email?token=${verificationToken}&email=${email}`;
+    // Sử dụng FRONTEND_URL từ environment
+    const frontendUrl = process.env.FRONTEND_URL || 'https://www.vibestoneoficial.store';
+    const verificationUrl = `${frontendUrl}/verify-email?token=${verificationToken}&email=${email}`;
+    
+    console.log('Generated verification URL:', verificationUrl); // Debug log
     
     const mailOptions = {
       from: `"VibeStone - Cửa hàng phong thủy" <${process.env.EMAIL_USER || 'quangvu1922@gmail.com'}>`,
@@ -54,12 +58,15 @@ export const sendVerificationEmail = async (email, verificationToken, userName) 
             
             <p style="color: #999; font-size: 12px; text-align: center;">
               Nếu bạn không thể click vào nút trên, hãy copy và paste link sau vào trình duyệt:<br>
-              <span style="word-break: break-all;">${verificationUrl}</span>
+              <span style="word-break: break-all; color: #667eea;">${verificationUrl}</span>
             </p>
             
             <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee;">
               <p style="color: #999; font-size: 12px; margin: 0;">
                 © 2024 VibeStone - Mang lại năng lượng tích cực cho cuộc sống của bạn
+              </p>
+              <p style="color: #999; font-size: 12px; margin: 10px 0 0 0;">
+                🌐 Website: ${frontendUrl} | 📧 Email: support@vibestone.com
               </p>
             </div>
           </div>
@@ -68,10 +75,11 @@ export const sendVerificationEmail = async (email, verificationToken, userName) 
     };
 
     const result = await transporter.sendMail(mailOptions);
-    console.log('Email sent successfully:', result.messageId);
+    console.log('Verification email sent successfully:', result.messageId);
     return { success: true, messageId: result.messageId };
+    
   } catch (error) {
-    console.error('Error sending email:', error);
+    console.error('Error sending verification email:', error);
     return { success: false, error: error.message };
   }
 };

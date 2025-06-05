@@ -5,6 +5,6 @@ const userRouter = express.Router();
 
 userRouter.post("/register", registerUser);
 userRouter.post("/login", loginUser);
-userRouter.get("/verify-email", verifyEmailToken); // GET method với query params
+userRouter.get("/verify-email", verifyEmailToken);
 
 export default userRouter;
