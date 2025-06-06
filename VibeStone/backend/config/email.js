@@ -228,13 +228,13 @@ export const sendOrderConfirmationEmail = async (orderData) => {
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/myorders" 
+              <a href="${frontendUrl || 'https://www.vibestoneoficial.store'}/myorders" 
                  style="display: inline-block; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); 
                         color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; 
                         font-weight: bold; font-size: 16px; margin-right: 10px;">
                 📱 Theo Dõi Đơn Hàng
               </a>
-              <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}/store" 
+              <a href="${frontendUrl || 'https://www.vibestoneoficial.store'}/store" 
                  style="display: inline-block; background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); 
                         color: white; padding: 12px 30px; text-decoration: none; border-radius: 25px; 
                         font-weight: bold; font-size: 16px;">
