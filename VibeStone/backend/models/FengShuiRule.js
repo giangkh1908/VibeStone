@@ -4,7 +4,9 @@ const { ObjectId } = require('mongodb');
 class FengShuiRule {
   constructor(data) {
     this.element = data.element;
-    this.birth_years = data.birth_years || [];
+    this.birth_year = data.birth_year || [];
+    // this.birth_month = data.birth_month || [];
+    // this.birth_day = data.birth_day || [];
     this.compatible_colors = data.compatible_colors || [];
     this.beneficial_colors = data.beneficial_colors || [];
     this.avoid_colors = data.avoid_colors || [];

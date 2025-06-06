@@ -289,7 +289,7 @@ function TuViPage() {
                 </select>
               </div>
 
-              <div className="tuvi-form-group">
+              {/* <div className="tuvi-form-group">
                 <label>Ghi chú</label>
                 <textarea
                   value={userInfo.preferences}
@@ -302,7 +302,7 @@ function TuViPage() {
                   placeholder="Ghi chú thêm (tùy chọn)..."
                   rows="3"
                 />
-              </div>
+              </div> */}
 
               <button
                 className="tuvi-analyze-btn"
@@ -394,7 +394,7 @@ function TuViPage() {
                 </div>
 
                 <div className="tuvi-analysis-card">
-                  <h3>🎨 Màu Sắc & Vật Phẩm</h3>
+                  <h3>🎨 Màu Sắc Phù Hợp</h3>
                   <div className="tuvi-color-section">
                     <div>
                       <h4><i className="fas fa-palette"></i> Màu tương hợp:</h4>
@@ -479,7 +479,7 @@ function TuViPage() {
                   </div>
                 </div>
                 <div className="tuvi-analysis-card">
-                  <h3>🌟 Phân Tích Sao</h3>
+                  <h3>🌟 Sao Chiếu Mệnh</h3>
                   <div className="tuvi-stars-info">
                     <div className="tuvi-star-section">
                       <h4><i className="fas fa-star"></i> Chính Tinh</h4>

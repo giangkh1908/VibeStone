@@ -113,15 +113,75 @@ export class FengShuiAnalyzer {
     // Hệ thống sao
     this.stars = {
       chinhTinh: {
+        'Tử Vi': {
+          desc: 'Chủ về quyền lực tối cao, trí tuệ, sự lãnh đạo, quý nhân phù trợ',
+          good: ['Thông minh, sáng suốt', 'Có tài lãnh đạo', 'Được quý nhân giúp đỡ', 'Có uy quyền'],
+          bad: ['Dễ kiêu ngạo', 'Cô độc', 'Áp lực lớn']
+        },
+        'Thiên Cơ': {
+          desc: 'Chủ về mưu lược, trí tuệ, sự biến hóa, linh hoạt',
+          good: ['Thông minh, sáng tạo', 'Khéo léo, linh hoạt', 'Có khả năng thích nghi'],
+          bad: ['Dễ thay đổi', 'Thiếu kiên định', 'Hay lo xa']
+        },
         'Thái Dương': {
           desc: 'Chủ về quyền lực, danh vọng, sự nghiệp',
           good: ['Sáng sủa, nhiệt huyết', 'Có tài lãnh đạo', 'Thành công trong sự nghiệp'],
           bad: ['Kiêu ngạo', 'Nóng nảy', 'Độc đoán']
         },
+        'Vũ Khúc': {
+          desc: 'Chủ về tài chính, nghị lực, sự kiên trì, tài sản',
+          good: ['Kiên trì, quyết đoán', 'Giỏi quản lý tài chính', 'Có ý chí mạnh mẽ'],
+          bad: ['Cứng nhắc', 'Bảo thủ', 'Dễ gặp khó khăn về tình cảm']
+        },
+        'Thiên Đồng': {
+          desc: 'Chủ về phúc đức, hòa nhã, nhân hậu, dễ thích nghi',
+          good: ['Nhân hậu, hòa đồng', 'Dễ thích nghi', 'Được nhiều người yêu mến'],
+          bad: ['Thiếu quyết đoán', 'Dễ bị ảnh hưởng', 'Hay thay đổi ý kiến']
+        },
+        'Liêm Trinh': {
+          desc: 'Chủ về chính trực, liêm khiết, thử thách, luật pháp',
+          good: ['Chính trực, liêm khiết', 'Có ý chí mạnh mẽ', 'Kiên định'],
+          bad: ['Dễ gặp thị phi', 'Cứng nhắc', 'Khó hòa nhập']
+        },
+        'Thiên Phủ': {
+          desc: 'Chủ về tài sản, kho tàng, sự bảo hộ, ổn định',
+          good: ['Giàu có, ổn định', 'Có khả năng tích lũy', 'Được bảo vệ'],
+          bad: ['Bảo thủ', 'Chậm thay đổi', 'Dễ bị lừa gạt']
+        },
         'Thái Âm': {
           desc: 'Chủ về tình cảm, gia đình, sự ổn định',
           good: ['Nhạy cảm, tinh tế', 'Quan tâm gia đình', 'Có tài ngoại giao'],
           bad: ['Dễ xúc động', 'Thiếu quyết đoán', 'Hay lo lắng']
+        },
+        'Tham Lang': {
+          desc: 'Chủ về ham muốn, nghệ thuật, giao tiếp, đào hoa',
+          good: ['Năng động, sáng tạo', 'Có tài nghệ thuật', 'Giao tiếp tốt'],
+          bad: ['Dễ sa ngã', 'Ham vui', 'Dễ bị cám dỗ']
+        },
+        'Cự Môn': {
+          desc: 'Chủ về khẩu thiệt, tranh luận, học vấn, thị phi',
+          good: ['Giỏi tranh luận', 'Có tài hùng biện', 'Thông minh'],
+          bad: ['Dễ gặp thị phi', 'Hay tranh cãi', 'Khó hòa hợp']
+        },
+        'Thiên Tướng': {
+          desc: 'Chủ về quyền uy, bảo vệ, giúp đỡ, công lý',
+          good: ['Chính trực, công bằng', 'Có uy tín', 'Giúp đỡ người khác'],
+          bad: ['Dễ bị lợi dụng', 'Cứng nhắc', 'Khó thay đổi']
+        },
+        'Thiên Lương': {
+          desc: 'Chủ về phúc đức, sự kéo dài, tính bền vững, gặp hung hóa cát',
+          good: ['Nhân hậu, từ bi', 'Xoay chuyển thời cục', 'Được nhiều người kính trọng'],
+          bad: ['Dễ bị lợi dụng', 'Quá tin người', 'Dễ gặp rắc rối']
+        },
+        'Thất Sát': {
+          desc: 'Chủ về quyền lực, quyết đoán, mạo hiểm, thay đổi',
+          good: ['Quyết đoán, mạnh mẽ', 'Dám nghĩ dám làm', 'Có tố chất lãnh đạo'],
+          bad: ['Nóng nảy', 'Dễ gặp nguy hiểm', 'Khó kiểm soát cảm xúc']
+        },
+        'Phá Quân': {
+          desc: 'Chủ về phá cách, đổi mới, cách mạng, biến động',
+          good: ['Sáng tạo, đổi mới', 'Dám thay đổi', 'Có ý chí mạnh mẽ'],
+          bad: ['Dễ gặp biến động', 'Thiếu ổn định', 'Dễ mất phương hướng']
         },
         'Mộc Đức': {
           desc: 'Chủ về học vấn, trí tuệ, sự phát triển',
@@ -155,15 +215,35 @@ export class FengShuiAnalyzer {
           good: ['Gặp nhiều may mắn', 'Được quý nhân giúp đỡ', 'Có cơ hội tốt'],
           bad: ['Dễ bỏ lỡ cơ hội', 'Thiếu quyết đoán khi cần']
         },
+        'Nguyệt Đức': {
+          desc: 'Sao phúc đức, hóa giải tai ương, tăng vận may',
+          good: ['Dễ gặp may mắn', 'Được giúp đỡ khi khó khăn', 'Hóa giải vận xấu'],
+          bad: ['Dễ chủ quan', 'Không tận dụng hết cơ hội']
+        },
         'Thiên Hỷ': {
           desc: 'Sao vui vẻ, mang lại niềm vui và hạnh phúc',
           good: ['Vui vẻ, lạc quan', 'Được yêu mến', 'Có duyên với người khác'],
           bad: ['Dễ bị lừa gạt', 'Thiếu cảnh giác']
         },
+        'Đào Hoa': {
+          desc: 'Sao đào hoa, chủ về tình cảm, nhân duyên, thu hút',
+          good: ['Dễ thu hút người khác', 'Có duyên trong giao tiếp', 'Tăng vận tình cảm'],
+          bad: ['Dễ vướng thị phi tình cảm', 'Dễ bị hiểu lầm']
+        },
+        'Hồng Loan': {
+          desc: 'Sao tình duyên, chủ về hôn nhân, tình cảm tốt đẹp',
+          good: ['Dễ gặp nhân duyên tốt', 'Tình cảm thuận lợi', 'Gia đình hòa thuận'],
+          bad: ['Dễ bị chi phối bởi tình cảm', 'Dễ cảm xúc thất thường']
+        },
         'Thiên Mã': {
           desc: 'Sao di chuyển, mang lại sự thay đổi và cơ hội',
           good: ['Nhiều cơ hội đi xa', 'Dễ thích nghi', 'Có tài ngoại giao'],
           bad: ['Khó ổn định', 'Hay thay đổi công việc']
+        },
+        'Lộc Tồn': {
+          desc: 'Sao tài lộc, chủ về tiền bạc, của cải, may mắn tài chính',
+          good: ['Dễ gặp vận may tài chính', 'Có lộc bất ngờ', 'Thu nhập tăng'],
+          bad: ['Dễ tiêu xài hoang phí', 'Dễ bị mất mát tài sản']
         },
         'Thiên Khốc': {
           desc: 'Sao buồn bã, mang lại thử thách và bài học',
