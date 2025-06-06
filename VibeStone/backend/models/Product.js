@@ -54,7 +54,7 @@ class Product {
     }
 
     if (!Array.isArray(data.feng_shui_elements) || data.feng_shui_elements.length === 0) {
-      errors.push('Sản phẩm phải thuộc ít nhất một ngũ hành');
+      errors.push('Sản phẩm phải thuộc ít nhất một thuộc tính ngũ hành');
     }
 
     const validElements = ['Kim', 'Mộc', 'Thủy', 'Hỏa', 'Thổ'];
