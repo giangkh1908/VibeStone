@@ -1,12 +1,13 @@
 .header{
-    height: 34vw;
-    margin: 30px auto;
+    height: 35vw;
+    margin: 20px auto;
     background: url('../../assets/header_img.png') no-repeat;
     background-size: cover;
     background-position: center;
     position: relative;
     border-radius: 15px;
     overflow: hidden;
+    font-family: 'Inter', sans-serif;
 }
 .header-contents{
     position: absolute;
@@ -15,15 +16,16 @@
     align-items: start;
     gap: 1.5vw;
     max-width: 50%;
-    bottom: 10%;
-    left: 6vw;
+    bottom: 5%;
+    left: 3vw;
     animation: fadeIn 3s;
-    z-index: 1;
+    font-family: 'Inter', sans-serif;
 }
 .header-contents h2{
-    font-weight:300;
+    font-weight:500;
     color: white;
-    font-size: max(4.5vw,22px);
+    font-size: max(4.5vw, 22px);
+    
 }
 
 .header-contents h2 i {
@@ -36,20 +38,21 @@
 }
 
 .header-contents h2 span:nth-child(3) i {
-    color: #9370DB; /* Màu tím nhạt cho icon ngọc */
+    color: #0899f3; /* Màu tím nhạt cho icon ngọc */
 }
 
 .header-contents h2 span:nth-child(5) i {
-    color: #00BFFF; /* Màu xanh dương cho icon âm dương */
+    color: #fcfeff; /* Màu xanh dương cho icon âm dương */
 }
 .header-contents p{
     color: white;
     font-size: 1vw;
     margin-bottom: -1vw;
+    font-family: 'Inter', sans-serif;
 }
 .header-contents button{
     border: none;
-    color: #747474;
+    color: #000000;
     font-weight: 400;
     padding: 1vw 2.3vw;
     background: white;
@@ -66,21 +69,30 @@
 @media (max-width:1050px) {
     .header{
         height: 38vw;
+        max-width: 98vw;
     }
     .header-contents{
-        max-width: 45%;
+        max-width: 60%;
         bottom: 8%;
     }
 }
 @media(max-width:750px){
-    .header-contents{
-        max-width: 55%;
-        bottom: 5%;
+    .header{
+        height: 60vw;
+        margin: 10px 0 10px 0;
+        max-width: 100vw;
     }
-    .header-contents p{
-       display: none;
+    .header-contents{
+        max-width: 95%;
+        bottom: 3%;
+        left: 2vw;
+        padding: 3vw 2vw;
+    }
+    .header-contents h2 {
+        font-size: max(6vw,18px);
     }
     .header-contents button{
         padding: 2vw 4vw;
+        font-size: 0.95rem;
     }
 }

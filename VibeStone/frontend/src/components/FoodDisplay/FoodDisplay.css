@@ -44,8 +44,20 @@
 }
 
 @media (max-width: 600px) {
+    .food-display {
+        padding: 0 4px;
+    }
     .food-display-list {
         grid-template-columns: 1fr;
+        gap: 12px;
+        row-gap: 18px;
+    }
+    .food-display h2 {
+        font-size: 1.1rem;
+    }
+    .no-products {
+        font-size: 0.98rem;
+        padding: 12px;
     }
 }
 

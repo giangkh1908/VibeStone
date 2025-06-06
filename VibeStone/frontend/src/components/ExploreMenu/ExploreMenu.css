@@ -52,3 +52,20 @@
         font-size: 14px;
     }
 }
+@media (max-width:750px) {
+    .explore-menu-text{
+        font-size: 12px;
+        max-width: 100%;
+    }
+    .explore-menu-list{
+        gap: 10px;
+        padding: 0 2vw;
+    }
+    .explore-menu-list-item img{
+        width: 16vw;
+        min-width: 48px;
+    }
+    .explore-menu-list-item p{
+        font-size: max(2.5vw,12px);
+    }
+}

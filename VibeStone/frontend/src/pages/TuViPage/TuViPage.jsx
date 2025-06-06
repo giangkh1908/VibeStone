@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import "./TuViPage.css"; // Import your CSS styles
 
 const API_BASE = "http://localhost:5000/api"; // Change port if needed
@@ -86,6 +88,7 @@ function TuViPage() {
 
   const analyzeUser = async () => {
     if (!validateInput()) {
+      toast.error(error);
       return;
     }
 
@@ -93,7 +96,6 @@ function TuViPage() {
     setError("");
 
     try {
-      console.log("Sending request with data:", userInfo);
       const response = await fetch(`${API_BASE}/analyze-user`, {
         method: "POST",
         headers: {
@@ -112,7 +114,6 @@ function TuViPage() {
       });
 
       const data = await response.json();
-      console.log("Received response:", data);
 
       if (!response.ok) {
         throw new Error(data.error || "Lỗi phân tích");
@@ -125,16 +126,39 @@ function TuViPage() {
       setAnalysis(data.data);
       setActiveTab("analysis");
     } catch (err) {
-      console.error("Analysis error:", err);
       setError(err.message);
+      toast.error(err.message);
     } finally {
       setLoading(false);
     }
   };
 
+  const isFormValid = () => {
+    return (
+      userInfo.name.trim() &&
+      userInfo.birthYear &&
+      userInfo.birthMonth &&
+      userInfo.birthDay &&
+      userInfo.birthHour &&
+      userInfo.birthMinute
+    );
+  };
+
   return (
-    <div className="app">
-      <nav className="tab-nav">
+    <div className="tuvi-app">
+      <ToastContainer
+        position="top-right"
+        autoClose={3000}
+        hideProgressBar={true}
+        newestOnTop
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <nav className="tuvi-tab-nav">
         <button
           className={activeTab === "info" ? "active" : ""}
           onClick={() => setActiveTab("info")}
@@ -149,16 +173,15 @@ function TuViPage() {
         </button>
       </nav>
 
-      <main className="app-main">
-        {error && <div className="error-message">⚠️ {error}</div>}
-        {loading && <div className="loading-message">⏳ Đang phân tích...</div>}
+      <main className="tuvi-app-main">
+        {loading && <div className="tuvi-loading-message">⏳ Đang phân tích...</div>}
 
         {activeTab === "info" && (
-          <div className="tab-content">
-            <div className="user-info-form">
+          <div className="tuvi-tab-content">
+            <div className="tuvi-user-info-form">
               <h2>Thông Tin Cá Nhân</h2>
 
-              <div className="form-group">
+              <div className="tuvi-form-group">
                 <label>Họ Và Tên *</label>
                 <input
                   type="text"
@@ -173,10 +196,10 @@ function TuViPage() {
                 />
               </div>
 
-              <div className="form-group">
+              <div className="tuvi-form-group">
                 <label>Ngày Sinh *</label>
-                <div className="birth-date-group">
-                  <div className="date-time-inputs">
+                <div className="tuvi-birth-date-group">
+                  <div className="tuvi-date-time-inputs">
                     <input
                       type="number"
                       min="1"
@@ -220,9 +243,9 @@ function TuViPage() {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="tuvi-form-group">
                 <label>Giờ Sinh *</label>
-                <div className="date-time-inputs">
+                <div className="tuvi-date-time-inputs">
                   <input
                     type="number"
                     min="0"
@@ -252,7 +275,7 @@ function TuViPage() {
                 </div>
               </div>
 
-              <div className="form-group">
+              <div className="tuvi-form-group">
                 <label>Giới tính</label>
                 <select
                   value={userInfo.gender}
@@ -266,7 +289,7 @@ function TuViPage() {
                 </select>
               </div>
 
-              <div className="form-group">
+              <div className="tuvi-form-group">
                 <label>Ghi chú</label>
                 <textarea
                   value={userInfo.preferences}
@@ -282,9 +305,9 @@ function TuViPage() {
               </div>
 
               <button
-                className="analyze-btn"
+                className="tuvi-analyze-btn"
                 onClick={analyzeUser}
-                disabled={loading}
+                disabled={loading || !isFormValid()}
               >
                 {loading ? "⏳ Đang phân tích..." : "🔍 Phân Tích Mệnh"}
               </button>
@@ -293,51 +316,51 @@ function TuViPage() {
         )}
 
         {activeTab === "analysis" && (
-          <div className="tab-content">
+          <div className="tuvi-tab-content">
             {analysis ? (
-              <div className="analysis-result">
+              <div className="tuvi-analysis-result">
                 <h2>Kết Quả Phân Tích</h2>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>🌟 Thông Tin Cơ Bản</h3>
-                  <div className="element-info">
-                    <div className="element-primary">
-                      <span className="element-badge">
+                  <div className="tuvi-element-info">
+                    <div className="tuvi-element-primary">
+                      <span className="tuvi-element-badge">
                         {analysis.element} 
                       </span>
-                      <div className="element-description">
-                        <div className="element-desc">
+                      <div className="tuvi-element-description">
+                        <div className="tuvi-element-desc">
                           <p>{analysis.elementDesc}</p>
                         </div>
-                        <div className="element-details">
+                        <div className="tuvi-element-details">
                           <p><strong>Can Chi:</strong> {analysis.can} {analysis.chi}</p>
                           <p><strong>Nạp Âm:</strong> {analysis.napAmFull}</p>
                         </div>
                       </div>
                     </div>
-                    <div className="personal-info">
-                      <div className="info-item">
+                    <div className="tuvi-personal-info">
+                      <div className="tuvi-info-item">
                         <i className="fas fa-user"></i>
                         <div>
                           <label>Họ Và Tên</label>
                           <p>{analysis.name}</p>
                         </div>
                       </div>
-                      <div className="info-item">
+                      <div className="tuvi-info-item">
                         <i className="fas fa-calendar"></i>
                         <div>
                           <label>Ngày Sinh</label>
                           <p>{analysis.birthDay}/{analysis.birthMonth}/{analysis.birthYear}</p>
                         </div>
                       </div>
-                      <div className="info-item">
+                      <div className="tuvi-info-item">
                         <i className="fas fa-clock"></i>
                         <div>
                           <label>Giờ Sinh</label>
                           <p>{analysis.birthHour}:{analysis.birthMinute}</p>
                         </div>
                       </div>
-                      <div className="info-item">
+                      <div className="tuvi-info-item">
                         <i className="fas fa-venus-mars"></i>
                         <div>
                           <label>Giới Tính</label>
@@ -348,10 +371,10 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>💫 Tính Cách & Đặc Điểm</h3>
-                  <div className="characteristics-grid">
-                    <div className="characteristic-section positive">
+                  <div className="tuvi-characteristics-grid">
+                    <div className="tuvi-characteristic-section positive">
                       <h4><i className="fas fa-plus-circle"></i> Điểm Mạnh</h4>
                       <ul>
                         {analysis.strengths.map((strength, idx) => (
@@ -359,7 +382,7 @@ function TuViPage() {
                         ))}
                       </ul>
                     </div>
-                    <div className="characteristic-section negative">
+                    <div className="tuvi-characteristic-section negative">
                       <h4><i className="fas fa-minus-circle"></i> Điểm Yếu</h4>
                       <ul>
                         {analysis.weaknesses.map((weakness, idx) => (
@@ -370,14 +393,14 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>🎨 Màu Sắc & Vật Phẩm</h3>
-                  <div className="color-section">
+                  <div className="tuvi-color-section">
                     <div>
                       <h4><i className="fas fa-palette"></i> Màu tương hợp:</h4>
-                      <div className="color-list">
+                      <div className="tuvi-color-list">
                         {analysis.compatibleColors.map((color, idx) => (
-                          <span key={idx} className="color-tag compatible">
+                          <span key={idx} className="tuvi-color-tag compatible">
                             {color}
                           </span>
                         ))}
@@ -385,9 +408,9 @@ function TuViPage() {
                     </div>
                     <div>
                       <h4><i className="fas fa-star"></i> Màu có lợi:</h4>
-                      <div className="color-list">
+                      <div className="tuvi-color-list">
                         {analysis.beneficialColors.map((color, idx) => (
-                          <span key={idx} className="color-tag beneficial">
+                          <span key={idx} className="tuvi-color-tag beneficial">
                             {color}
                           </span>
                         ))}
@@ -395,9 +418,9 @@ function TuViPage() {
                     </div>
                     <div>
                       <h4><i className="fas fa-ban"></i> Màu nên tránh:</h4>
-                      <div className="color-list">
+                      <div className="tuvi-color-list">
                         {analysis.avoidColors.map((color, idx) => (
-                          <span key={idx} className="color-tag avoid">
+                          <span key={idx} className="tuvi-color-tag avoid">
                             {color}
                           </span>
                         ))}
@@ -406,11 +429,11 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>💼 Nghề Nghiệp Phù Hợp</h3>
-                  <div className="career-grid">
+                  <div className="tuvi-career-grid">
                     {analysis.careers.map((career, idx) => (
-                      <div key={idx} className="career-item">
+                      <div key={idx} className="tuvi-career-item">
                         <i className="fas fa-briefcase"></i>
                         <span>{career}</span>
                       </div>
@@ -418,24 +441,24 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>🧭 Hướng & Số May Mắn</h3>
-                  <div className="luck-info">
-                    <div className="directions-section">
+                  <div className="tuvi-luck-info">
+                    <div className="tuvi-directions-section">
                       <h4><i className="fas fa-compass"></i> Hướng May Mắn</h4>
-                      <div className="directions">
+                      <div className="tuvi-directions">
                         {analysis.luckyDirections.map((direction, idx) => (
-                          <span key={idx} className="direction-tag">
+                          <span key={idx} className="tuvi-direction-tag">
                             {direction}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <div className="numbers-section">
+                    <div className="tuvi-numbers-section">
                       <h4><i className="fas fa-dice"></i> Số May Mắn</h4>
-                      <div className="numbers">
+                      <div className="tuvi-numbers">
                         {analysis.luckyNumbers.map((number, idx) => (
-                          <span key={idx} className="number-tag">
+                          <span key={idx} className="tuvi-number-tag">
                             {number}
                           </span>
                         ))}
@@ -444,28 +467,28 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>🔮 Vật Phẩm May Mắn</h3>
-                  <div className="lucky-items">
+                  <div className="tuvi-lucky-items">
                     {analysis.luckyItems.map((item, idx) => (
-                      <div key={idx} className="lucky-item">
+                      <div key={idx} className="tuvi-lucky-item">
                         <i className="fas fa-gem"></i>
                         <span>{item}</span>
                       </div>
                     ))}
                   </div>
                 </div>
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>🌟 Phân Tích Sao</h3>
-                  <div className="stars-info">
-                    <div className="star-section">
+                  <div className="tuvi-stars-info">
+                    <div className="tuvi-star-section">
                       <h4><i className="fas fa-star"></i> Chính Tinh</h4>
                       {analysis.stars?.chinhTinh?.map((star, idx) => (
-                        <div key={idx} className="star-item">
+                        <div key={idx} className="tuvi-star-item">
                           <h5>{star.name}</h5>
-                          <p className="star-desc">{star.desc}</p>
-                          <div className="star-traits">
-                            <div className="traits-good">
+                          <p className="tuvi-star-desc">{star.desc}</p>
+                          <div className="tuvi-star-traits">
+                            <div className="tuvi-traits-good">
                               <h6>Điểm Mạnh</h6>
                               <ul>
                                 {star.good?.map((trait, i) => (
@@ -473,7 +496,7 @@ function TuViPage() {
                                 ))}
                               </ul>
                             </div>
-                            <div className="traits-bad">
+                            <div className="tuvi-traits-bad">
                               <h6>Điểm Cần Lưu Ý</h6>
                               <ul>
                                 {star.bad?.map((trait, i) => (
@@ -486,14 +509,14 @@ function TuViPage() {
                       ))}
                     </div>
 
-                    <div className="star-section">
+                    <div className="tuvi-star-section">
                       <h4><i className="fas fa-star-half-alt"></i> Phụ Tinh</h4>
                       {analysis.stars?.phuTinh?.map((star, idx) => (
-                        <div key={idx} className="star-item">
+                        <div key={idx} className="tuvi-star-item">
                           <h5>{star.name}</h5>
-                          <p className="star-desc">{star.desc}</p>
-                          <div className="star-traits">
-                            <div className="traits-good">
+                          <p className="tuvi-star-desc">{star.desc}</p>
+                          <div className="tuvi-star-traits">
+                            <div className="tuvi-traits-good">
                               <h6>Ảnh Hưởng Tích Cực</h6>
                               <ul>
                                 {star.good?.map((trait, i) => (
@@ -501,7 +524,7 @@ function TuViPage() {
                                 ))}
                               </ul>
                             </div>
-                            <div className="traits-bad">
+                            <div className="tuvi-traits-bad">
                               <h6>Ảnh Hưởng Cần Lưu Ý</h6>
                               <ul>
                                 {star.bad?.map((trait, i) => (
@@ -514,18 +537,18 @@ function TuViPage() {
                       ))}
                     </div>
 
-                    <div className="star-section">
+                    <div className="tuvi-star-section">
                       <h4><i className="fas fa-compass"></i> Cung Giờ</h4>
-                      <div className="hour-palace">
+                      <div className="tuvi-hour-palace">
                         <p>{analysis.stars?.hourPalace}</p>
                       </div>
                     </div>
                   </div>
                 </div>
                     
-                <div className="analysis-card">
+                <div className="tuvi-analysis-card">
                   <h3>📋 Phân Tích Tổng Hợp</h3>
-                  <div className="analysis-text">
+                  <div className="tuvi-analysis-text">
                     {analysis.analysis.split("\n").map((line, idx) => (
                       <p key={idx}>{line}</p>
                     ))}
@@ -535,7 +558,7 @@ function TuViPage() {
                 
               </div>
             ) : (
-              <div className="no-analysis">
+              <div className="tuvi-no-analysis">
                 <p>
                   Chưa có kết quả phân tích. Vui lòng nhập thông tin và phân
                   tích mệnh trước.

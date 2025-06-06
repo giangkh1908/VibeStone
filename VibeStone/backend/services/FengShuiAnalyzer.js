@@ -270,11 +270,11 @@ export class FengShuiAnalyzer {
       // Đảm bảo hourPalace có giá trị
       const hourPalaceValue = this.hourPalace[hourPalace] || 'Không xác định';
 
-      console.log('Star calculation result:', {
-        chinhTinh,
-        phuTinh,
-        hourPalace: hourPalaceValue
-      });
+      // console.log('Star calculation result:', {
+      //   chinhTinh,
+      //   phuTinh,
+      //   hourPalace: hourPalaceValue
+      // });
 
       return {
         chinhTinh,

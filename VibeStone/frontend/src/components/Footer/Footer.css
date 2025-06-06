@@ -58,3 +58,24 @@
         text-align: center;
     }
 }
+@media (max-width: 600px) {
+    .footer {
+        padding: 12px 2vw;
+        padding-top: 40px;
+    }
+    .footer-content{
+        gap: 18px;
+    }
+    .footer-content-left img {
+        max-width: 90px;
+    }
+    .footer-social-icons img{
+        width: 28px;
+    }
+    .footer-content-left h2, .footer-content-center h2, .footer-content-right h2{
+        font-size: 1.1rem;
+    }
+    .footer li, .footer-content-left ul li, .footer-content-center ul li, .footer-content-right ul li{
+        font-size: 0.98rem;
+    }
+}

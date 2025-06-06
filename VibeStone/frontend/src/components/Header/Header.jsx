@@ -15,7 +15,7 @@ const Header = () => {
                     <span> Vạn sự bình an</span> */}
                 </h2>
                 <p>Khám phá bộ sưu tập vật phẩm phong thủy đa dạng, được tuyển chọn kỹ lưỡng từ những chất liệu tinh túy và chế tác bởi đôi tay nghệ nhân lành nghề. Chúng tôi cam kết mang đến sự hài hòa, may mắn và thịnh vượng cho không gian sống và công việc của bạn – từng vật phẩm là một nguồn năng lượng tích cực được gửi gắm với tâm huyết và sự am hiểu sâu sắc về phong thủy.</p>
-                <button onClick={() => navigate('/store')}>Xem Cửa Hàng</button>
+                <button onClick={() => navigate('/store')}>Xem Cửa Hàng<i className="fas fa-arrow-right"></i></button>
             </div>
         </div>
     )
