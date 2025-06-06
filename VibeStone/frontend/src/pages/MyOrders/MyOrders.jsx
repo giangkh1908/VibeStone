@@ -16,14 +16,16 @@ const MyOrders = () => {
 
   const fetchOrders = async () => {
     const response = await axios.post(url+"/api/order/userorders",{},{headers:{token}});
-    setData(response.data.data)
+    // Sắp xếp đơn hàng từ mới đến cũ
+    const sortedOrders = response.data.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+    setData(sortedOrders);
   }
 
   useEffect(()=>{
     if (token) {
       fetchOrders();
     }
-  },[token])
+  },[token, fetchOrders])
 
   return (
     <div className='my-orders'>

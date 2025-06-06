@@ -228,14 +228,14 @@ const Store = () => {
   // Lấy danh sách danh mục con dựa trên danh mục chính
   const getSubCategories = (category) => {
     const subCategories = {
-      "Vòng Tay": ["phong-thuy", "thoi-trang", "cao-cap"],
-      "Vòng Cổ": ["phong-thuy", "thoi-trang", "cao_cap"],
-      "Hũ Đá": ["da-tu-nhien", "da-quy", "da-ban-quy"],
-      "Móc Khóa": ["phong-thuy", "qua-tang", "trang-tri"],
-      "Cây Đá": ["phong-thuy", "trang-tri", "qua-tang"],
-      "Cầu Thủy Tinh": ["phong-thuy", "trang-tri"],
-      Nhẫn: ["phong-thuy", "thoi-trang"],
-      Tượng: ["phong-thuy", "trang-tri", "qua-tang"],
+      "Vòng Tay": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
+      "Vòng Cổ": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
+      "Hũ Đá": ["Đá Tự Nhiên", "Đá Quý"],
+      "Móc Khóa": ["Phong Thủy", "Quà Tặng", "Trang Trí"],
+      "Cây Đá": ["Phong Thủy", "Trang Trí", "Quà Tặng"],
+      "Cầu Thủy Tinh": ["Phong Thủy", "Trang Trí"],
+      Nhẫn: ["Phong Thủy", "Thời Trang"],
+      Tượng: ["Phong Thủy", "Trang Trí", "Quà Tặng"],
     };
     return subCategories[category] || [];
   };

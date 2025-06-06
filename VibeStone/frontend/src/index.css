@@ -1,5 +1,5 @@
 /* Đã import các phông chữ trong index.html */
-
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 * {
   margin: 0;
   padding: 0;
@@ -12,6 +12,7 @@ body {
   min-height: 100vh;
   color: #333;
   background-color: #f9f7f2;
+  font-family: 'Inter', sans-serif !important;
 }
 
 a {
@@ -38,6 +39,7 @@ button, .btn {
 .app {
   width: 80%;
   margin: auto;
+  padding-top: 80px;
 }
 
 @keyframes fadeIn {
@@ -53,5 +55,25 @@ button, .btn {
 @media (max-width:1050px) {
   .app {
     width: 90%;
+    padding-top: 70px;
+  }
+}
+
+@media (max-width: 750px) {
+  .app {
+    width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 60px;
+  }
+  p {
+    font-size: 0.98rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.1em;
+  }
+  button, .btn {
+    font-size: 0.98rem;
+    padding: 0.6em 1.2em;
   }
 }
