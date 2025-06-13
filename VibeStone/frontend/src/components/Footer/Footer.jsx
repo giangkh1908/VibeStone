@@ -1,8 +1,16 @@
-import React from 'react'
+import React, { useState } from 'react'
 import './Footer.css'
 import { assets } from '../../assets/assets'
+import FeedbackPopup from '../FeedbackPopup/FeedbackPopup'
 
 const Footer = () => {
+  const [showFeedback, setShowFeedback] = useState(false);
+
+  const handleFeedbackClick = (e) => {
+    e.preventDefault();
+    setShowFeedback(true);
+  };
+
   return (
     <div className='footer' id='footer'>
       <div className="footer-content">
@@ -36,10 +44,22 @@ const Footer = () => {
                 <li>+84-337-937-3984 </li>
                 <li>vibestone.official@gmail.com</li>
             </ul>
+            <button 
+              className="feedback-button"
+              onClick={handleFeedbackClick}
+              type="button"
+            >
+              Góp ý
+            </button>
         </div>
       </div>
       <hr />
       <p className="footer-copyright">Copyright 2025 © vibestone.com</p>
+
+      <FeedbackPopup 
+        isOpen={showFeedback} 
+        onClose={() => setShowFeedback(false)} 
+      />
     </div>
   )
 }

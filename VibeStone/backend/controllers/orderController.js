@@ -1,12 +1,14 @@
 import orderModel from "../models/orderModel.js";
 import userModel from "../models/userModel.js"
 import Stripe from "stripe";
+import { sendOrderConfirmationEmail } from "../config/email.js";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 //config variables
 const currency = "usd";
 const deliveryCharge = 5;
-const frontend_URL = 'http://localhost:5173';
+const frontend_URL = 'https://www.vibestoneoficial.store/';
 
 // Placing User Order for Frontend using stripe
 const placeOrder = async (req, res) => {
@@ -58,8 +60,8 @@ const placeOrder = async (req, res) => {
     }
 }
 
-// Placing User Order for Frontend using stripe
-const placeOrderCod = async (req, res) => {
+// Placing User Order for COD
+const placeOrderCOD = async (req, res) => {
 
     try {
         const newOrder = new orderModel({
@@ -67,17 +69,34 @@ const placeOrderCod = async (req, res) => {
             items: req.body.items,
             amount: req.body.amount,
             address: req.body.address,
-            payment: true,
         })
+
         await newOrder.save();
         await userModel.findByIdAndUpdate(req.body.userId, { cartData: {} });
 
-        res.json({ success: true, message: "Order Placed" });
+        // Gửi email xác nhận đơn hàng
+        const emailData = {
+            orderId: newOrder._id,
+            address: req.body.address,
+            items: req.body.items,
+            amount: req.body.amount,
+            status: 'Đang xử lý'
+        };
 
+        const emailResult = await sendOrderConfirmationEmail(emailData);
+        
+        if (emailResult.success) {
+            console.log('Order confirmation email sent successfully');
+        } else {
+            console.error('Failed to send order confirmation email:', emailResult.error);
+        }
+
+        res.json({ success: true, message: "Đặt hàng thành công" })
     } catch (error) {
         console.log(error);
         res.json({ success: false, message: "Error" })
     }
+
 }
 
 // Listing Order for Admin panel
@@ -130,4 +149,30 @@ const verifyOrder = async (req, res) => {
 
 }
 
-export { placeOrder, listOrders, userOrders, updateStatus, verifyOrder, placeOrderCod }
+const deleteOrder = async (req, res) => {
+    try {
+        const orderId = req.params.orderId;
+        const order = await orderModel.findById(orderId);
+        
+        if (!order) {
+            return res.json({ 
+                success: false, 
+                message: "Không tìm thấy đơn hàng" 
+            });
+        }
+
+        await orderModel.findByIdAndDelete(orderId);
+        res.json({ 
+            success: true, 
+            message: "Xóa đơn hàng thành công" 
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ 
+            success: false, 
+            message: "Lỗi khi xóa đơn hàng" 
+        });
+    }
+}
+
+export { placeOrder, listOrders, userOrders, updateStatus, verifyOrder, placeOrderCOD, deleteOrder }

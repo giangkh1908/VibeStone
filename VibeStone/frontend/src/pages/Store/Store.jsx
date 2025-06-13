@@ -4,6 +4,7 @@ import "./Store.css";
 import { StoreContext } from "../../Context/StoreContext";
 import ProductDetailPopup from "../../components/ProductDetailPopup/ProductDetailPopup";
 import { notifyAddedToCart } from "../../utils/notifications";
+import useDebounce from "../../hooks/useDebounce";
 
 const Store = () => {
   const CURRENCY = " VNĐ";
@@ -12,7 +13,7 @@ const Store = () => {
   const formatCurrency = (amount) => {
     return amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
   };
-  const { url, food_list, fetchFoodList } = useContext(StoreContext);
+  const { url, food_list, fetchFoodList, token } = useContext(StoreContext);
   const [allProducts, setAllProducts] = useState([]);
 
   // Lấy danh sách sản phẩm từ API và lưu vào localStorage
@@ -68,6 +69,32 @@ const Store = () => {
   const productsPerPage = 12; // Hiển thị tối đa 12 sản phẩm trên mỗi trang
 
   // Thêm sản phẩm vào giỏ hàng
+  const [pendingCartUpdates, setPendingCartUpdates] = useState({});
+  const debouncedPendingUpdates = useDebounce(pendingCartUpdates, 800);
+
+  useEffect(() => {
+    const syncCartWithServer = async () => {
+      if (!token || Object.keys(debouncedPendingUpdates).length === 0) {
+        return;
+      }
+
+      try {
+        for (const [itemId, quantity] of Object.entries(debouncedPendingUpdates)) {
+          for (let i = 0; i < quantity; i++) {
+            await axios.post(url + "/api/cart/add", { itemId }, { headers: { token } });
+          }
+        }
+
+        // Clear pending updates
+        setPendingCartUpdates({});
+      } catch (error) {
+        console.error("Error syncing cart with server:", error);
+      }
+    };
+
+    syncCartWithServer();
+  }, [debouncedPendingUpdates, token, url]);
+
   const addToCart = (itemId) => {
     // Tìm thông tin sản phẩm để hiển thị thông báo
     const product = allProducts.find((p) => p._id === itemId);
@@ -175,6 +202,14 @@ const Store = () => {
         }, 800);
       }
     }
+
+    // Queue API call nếu đã đăng nhập
+    if (token) {
+      setPendingCartUpdates((prev) => ({
+        ...prev,
+        [itemId]: (prev[itemId] || 0) + 1,
+      }));
+    }
   };
 
   useEffect(() => {
@@ -191,19 +226,19 @@ const Store = () => {
   };
 
   // Lấy danh sách danh mục con dựa trên danh mục chính
-  const getSubCategories = (category) => {
-    const subCategories = {
-      "Vòng Tay": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
-      "Vòng Cổ": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
-      "Hũ Đá": ["Đá Tự Nhiên", "Đá Quý"],
-      "Móc Khóa": ["Phong Thủy", "Quà Tặng", "Trang Trí"],
-      "Cây Đá": ["Phong Thủy", "Trang Trí", "Quà Tặng"],
-      "Cầu Thủy Tinh": ["Phong Thủy", "Trang Trí"],
-      Nhẫn: ["Phong Thủy", "Thời Trang"],
-      Tượng: ["Phong Thủy", "Trang Trí", "Quà Tặng"],
-    };
-    return subCategories[category] || [];
-  };
+  // const getSubCategories = (category) => {
+  //   const subCategories = {
+  //     "Vòng Tay": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
+  //     "Vòng Cổ": ["Phong Thủy", "Thời Trang", "Cao Cấp"],
+  //     "Hũ Đá": ["Đá Tự Nhiên", "Đá Quý"],
+  //     "Móc Khóa": ["Phong Thủy", "Quà Tặng", "Trang Trí"],
+  //     "Cây Đá": ["Phong Thủy", "Trang Trí", "Quà Tặng"],
+  //     "Cầu Thủy Tinh": ["Phong Thủy", "Trang Trí"],
+  //     Nhẫn: ["Phong Thủy", "Thời Trang"],
+  //     Tượng: ["Phong Thủy", "Trang Trí", "Quà Tặng"],
+  //   };
+  //   return subCategories[category] || [];
+  // };
 
   useEffect(() => {
     let result = allProducts;
@@ -236,11 +271,11 @@ const Store = () => {
     }
 
     // Filter by sub category
-    if (selectedSubCategory) {
-      result = result.filter(
-        (product) => product.subCategory === selectedSubCategory
-      );
-    }
+    // if (selectedSubCategory) {
+    //   result = result.filter(
+    //     (product) => product.subCategory === selectedSubCategory
+    //   );
+    // }
 
     setFilteredProducts(result);
   }, [searchTerm, selectedCategory, selectedSubCategory, allProducts]);
@@ -326,7 +361,7 @@ const Store = () => {
             <option value="Nhẫn">Nhẫn</option>
             <option value="Tượng">Tượng</option>
           </select>
-          {selectedCategory && (
+          {/* {selectedCategory && (
             <select
               value={selectedSubCategory}
               onChange={handleSubCategoryChange}
@@ -341,7 +376,7 @@ const Store = () => {
                 </option>
               ))}
             </select>
-          )}
+          )} */}
         </div>
       </div>
 

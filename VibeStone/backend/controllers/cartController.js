@@ -48,5 +48,62 @@ const getCart = async (req, res) => {
    }
 }
 
+// Set quantity trực tiếp cho sản phẩm
+const setCartItemQuantity = async (req, res) => {
+    try {
+        const { itemId, quantity } = req.body;
+        const userId = req.body.userId;
 
-export { addToCart, removeFromCart, getCart }
+        // Validate quantity
+        if (quantity < 0) {
+            return res.json({ success: false, message: "Quantity cannot be negative" });
+        }
+
+        let userData = await userModel.findById(userId);
+        let cartData = userData.cartData || {};
+
+        if (quantity === 0) {
+            // Nếu quantity = 0, xóa sản phẩm khỏi giỏ hàng
+            delete cartData[itemId];
+        } else {
+            // Set quantity trực tiếp
+            cartData[itemId] = quantity;
+        }
+
+        await userModel.findByIdAndUpdate(userId, { cartData });
+        res.json({ success: true, message: "Cart updated successfully" });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: "Error updating cart" });
+    }
+}
+
+// Batch update multiple items
+const batchUpdateCart = async (req, res) => {
+    try {
+        const { items } = req.body; // items = { itemId1: quantity1, itemId2: quantity2, ... }
+        const userId = req.body.userId;
+
+        let userData = await userModel.findById(userId);
+        let cartData = userData.cartData || {};
+
+        // Update tất cả items cùng lúc
+        for (const [itemId, quantity] of Object.entries(items)) {
+            if (quantity <= 0) {
+                delete cartData[itemId];
+            } else {
+                cartData[itemId] = quantity;
+            }
+        }
+
+        await userModel.findByIdAndUpdate(userId, { cartData });
+        res.json({ success: true, message: "Cart batch updated successfully" });
+
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: "Error batch updating cart" });
+    }
+}
+
+export { addToCart, removeFromCart, getCart, setCartItemQuantity, batchUpdateCart };

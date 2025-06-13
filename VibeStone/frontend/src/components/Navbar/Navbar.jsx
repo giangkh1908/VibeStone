@@ -32,7 +32,7 @@ const Navbar = ({ setShowLogin }) => {
   useEffect(() => {
     const updateCartCount = () => {
       const cart = JSON.parse(localStorage.getItem('cart') || '{}');
-      // Chỉ đếm số loại sản phẩm (không đếm số lượng)
+      // Đếm số loại sản phẩm trong cart
       const uniqueItemCount = Object.keys(cart).length;
       setCartCount(uniqueItemCount);
     };
@@ -43,12 +43,16 @@ const Navbar = ({ setShowLogin }) => {
     // Lắng nghe sự kiện thay đổi trong localStorage
     window.addEventListener('storage', updateCartCount);
     
-    // Lắng nghe custom event để cập nhật khi thêm sản phẩm
+    // Lắng nghe custom event để cập nhật khi thêm/xóa sản phẩm
     window.addEventListener('cartUpdated', updateCartCount);
+
+    // Thêm interval để kiểm tra và cập nhật số lượng mỗi giây
+    const intervalId = setInterval(updateCartCount, 500);
 
     return () => {
       window.removeEventListener('storage', updateCartCount);
       window.removeEventListener('cartUpdated', updateCartCount);
+      clearInterval(intervalId);
     };
   }, []);
 

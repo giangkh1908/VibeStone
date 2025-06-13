@@ -6,7 +6,8 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "vercel-build": "echo 'Build complete'"
   },
   "author": "",
   "license": "ISC",
@@ -17,9 +18,12 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.1.1",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.3",
+    "nodemon": "^3.0.3",
     "stripe": "^14.17.0",
     "validator": "^13.11.0"
   },

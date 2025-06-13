@@ -1,19 +1,21 @@
 import { createContext, useEffect, useState } from "react";
-import { menu_list } from "../assets/assets";
+import { food_list, menu_list } from "../assets/assets";
 import axios from "axios";
-import {
-  notifyAddedToCart,
-  notifyRemovedFromCart,
-} from "../utils/notifications";
+import { notifyRemovedFromCart } from "../utils/notifications";
+import { getApiUrl } from "../utils/config";
+
 export const StoreContext = createContext(null);
 
 const StoreContextProvider = (props) => {
-  const url = "http://localhost:5000";
+  const currency = " VNĐ";
+  const deliveryCharge = 5000;
+
+  // Sử dụng dynamic URL
+  const url = getApiUrl();
+
   const [food_list, setFoodList] = useState([]);
   const [cartItems, setCartItems] = useState({});
   const [token, setToken] = useState("");
-  const currency = " VNĐ";
-  const deliveryCharge = 10000;
 
   const addToCart = async (itemId) => {
     try {

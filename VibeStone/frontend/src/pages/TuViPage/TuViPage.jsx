@@ -3,8 +3,6 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./TuViPage.css"; // Import your CSS styles
 
-const API_BASE = "http://localhost:5000/api"; // Change port if needed
-
 function TuViPage() {
   const [activeTab, setActiveTab] = useState("info");
   const [userInfo, setUserInfo] = useState({
@@ -86,6 +84,8 @@ function TuViPage() {
     return true;
   };
 
+  const API_BASE = import.meta.env.VITE_API_URL || 'https://vibe-stone-backend.vercel.app';
+
   const analyzeUser = async () => {
     if (!validateInput()) {
       toast.error(error);
@@ -96,7 +96,19 @@ function TuViPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE}/analyze-user`, {
+      console.log('Calling API:', `${API_BASE}/api/analyze-user`);
+      console.log('Request data:', {
+        name: userInfo.name,
+        birthYear: parseInt(userInfo.birthYear),
+        birthMonth: parseInt(userInfo.birthMonth),
+        birthDay: parseInt(userInfo.birthDay),
+        birthHour: parseInt(userInfo.birthHour),
+        birthMinute: parseInt(userInfo.birthMinute),
+        gender: userInfo.gender || undefined,
+        preferences: userInfo.preferences || undefined,
+      });
+
+      const response = await fetch(`${API_BASE}/api/analyze-user`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -113,10 +125,17 @@ function TuViPage() {
         }),
       });
 
+      console.log('Response status:', response.status);
+      
       const data = await response.json();
+      console.log('Response data:', data);
 
       if (!response.ok) {
-        throw new Error(data.error || "Lỗi phân tích");
+        throw new Error(data.error || `HTTP error! status: ${response.status}`);
+      }
+
+      if (!data.success) {
+        throw new Error(data.error || "API trả về lỗi");
       }
 
       if (!data.data) {
@@ -125,9 +144,12 @@ function TuViPage() {
 
       setAnalysis(data.data);
       setActiveTab("analysis");
+      toast.success("Phân tích thành công!");
+      
     } catch (err) {
+      console.error('Analysis error:', err);
       setError(err.message);
-      toast.error(err.message);
+      toast.error(`Lỗi phân tích: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -330,11 +352,11 @@ function TuViPage() {
                       </span>
                       <div className="tuvi-element-description">
                         <div className="tuvi-element-desc">
-                          <p>{analysis.elementDesc}</p>
+                          <p>{analysis.elementDesc || ''}</p>
                         </div>
                         <div className="tuvi-element-details">
-                          <p><strong>Can Chi:</strong> {analysis.can} {analysis.chi}</p>
-                          <p><strong>Nạp Âm:</strong> {analysis.napAmFull}</p>
+                          <p><strong>Can Chi:</strong> {analysis.can || ''} {analysis.chi || ''}</p>
+                          <p><strong>Nạp Âm:</strong> {analysis.napAmFull || analysis.napAm || ''}</p>
                         </div>
                       </div>
                     </div>
@@ -357,14 +379,14 @@ function TuViPage() {
                         <i className="fas fa-clock"></i>
                         <div>
                           <label>Giờ Sinh</label>
-                          <p>{analysis.birthHour}:{analysis.birthMinute}</p>
+                          <p>{String(analysis.birthHour).padStart(2, '0')}:{String(analysis.birthMinute).padStart(2, '0')}</p>
                         </div>
                       </div>
                       <div className="tuvi-info-item">
                         <i className="fas fa-venus-mars"></i>
                         <div>
                           <label>Giới Tính</label>
-                          <p>{analysis.gender === 'male' ? 'Nam' : 'Nữ'}</p>
+                          <p>{analysis.gender === 'male' ? 'Nam' : analysis.gender === 'female' ? 'Nữ' : 'Không xác định'}</p>
                         </div>
                       </div>
                     </div>
@@ -377,7 +399,7 @@ function TuViPage() {
                     <div className="tuvi-characteristic-section positive">
                       <h4><i className="fas fa-plus-circle"></i> Điểm Mạnh</h4>
                       <ul>
-                        {analysis.strengths.map((strength, idx) => (
+                        {(analysis.strengths || []).map((strength, idx) => (
                           <li key={idx}><i className="fas fa-check"></i> {strength}</li>
                         ))}
                       </ul>
@@ -385,7 +407,7 @@ function TuViPage() {
                     <div className="tuvi-characteristic-section negative">
                       <h4><i className="fas fa-minus-circle"></i> Điểm Yếu</h4>
                       <ul>
-                        {analysis.weaknesses.map((weakness, idx) => (
+                        {(analysis.weaknesses || []).map((weakness, idx) => (
                           <li key={idx}><i className="fas fa-times"></i> {weakness}</li>
                         ))}
                       </ul>
@@ -399,7 +421,7 @@ function TuViPage() {
                     <div>
                       <h4><i className="fas fa-palette"></i> Màu tương hợp:</h4>
                       <div className="tuvi-color-list">
-                        {analysis.compatibleColors.map((color, idx) => (
+                        {(analysis.compatibleColors || []).map((color, idx) => (
                           <span key={idx} className="tuvi-color-tag compatible">
                             {color}
                           </span>
@@ -409,7 +431,7 @@ function TuViPage() {
                     <div>
                       <h4><i className="fas fa-star"></i> Màu có lợi:</h4>
                       <div className="tuvi-color-list">
-                        {analysis.beneficialColors.map((color, idx) => (
+                        {(analysis.beneficialColors || []).map((color, idx) => (
                           <span key={idx} className="tuvi-color-tag beneficial">
                             {color}
                           </span>
@@ -419,7 +441,7 @@ function TuViPage() {
                     <div>
                       <h4><i className="fas fa-ban"></i> Màu nên tránh:</h4>
                       <div className="tuvi-color-list">
-                        {analysis.avoidColors.map((color, idx) => (
+                        {(analysis.avoidColors || []).map((color, idx) => (
                           <span key={idx} className="tuvi-color-tag avoid">
                             {color}
                           </span>
@@ -429,17 +451,20 @@ function TuViPage() {
                   </div>
                 </div>
 
-                <div className="tuvi-analysis-card">
-                  <h3>💼 Nghề Nghiệp Phù Hợp</h3>
-                  <div className="tuvi-career-grid">
-                    {analysis.careers.map((career, idx) => (
-                      <div key={idx} className="tuvi-career-item">
-                        <i className="fas fa-briefcase"></i>
-                        <span>{career}</span>
-                      </div>
-                    ))}
+                {/* Kiểm tra careers có tồn tại không */}
+                {analysis.careers && analysis.careers.length > 0 && (
+                  <div className="tuvi-analysis-card">
+                    <h3>💼 Nghề Nghiệp Phù Hợp</h3>
+                    <div className="tuvi-career-grid">
+                      {analysis.careers.map((career, idx) => (
+                        <div key={idx} className="tuvi-career-item">
+                          <i className="fas fa-briefcase"></i>
+                          <span>{career}</span>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                )}
 
                 <div className="tuvi-analysis-card">
                   <h3>🧭 Hướng & Số May Mắn</h3>
@@ -447,7 +472,7 @@ function TuViPage() {
                     <div className="tuvi-directions-section">
                       <h4><i className="fas fa-compass"></i> Hướng May Mắn</h4>
                       <div className="tuvi-directions">
-                        {analysis.luckyDirections.map((direction, idx) => (
+                        {(analysis.luckyDirections || []).map((direction, idx) => (
                           <span key={idx} className="tuvi-direction-tag">
                             {direction}
                           </span>
@@ -457,7 +482,7 @@ function TuViPage() {
                     <div className="tuvi-numbers-section">
                       <h4><i className="fas fa-dice"></i> Số May Mắn</h4>
                       <div className="tuvi-numbers">
-                        {analysis.luckyNumbers.map((number, idx) => (
+                        {(analysis.luckyNumbers || []).map((number, idx) => (
                           <span key={idx} className="tuvi-number-tag">
                             {number}
                           </span>
@@ -470,7 +495,7 @@ function TuViPage() {
                 <div className="tuvi-analysis-card">
                   <h3>🔮 Vật Phẩm May Mắn</h3>
                   <div className="tuvi-lucky-items">
-                    {analysis.luckyItems.map((item, idx) => (
+                    {(analysis.luckyItems || []).map((item, idx) => (
                       <div key={idx} className="tuvi-lucky-item">
                         <i className="fas fa-gem"></i>
                         <span>{item}</span>
@@ -478,84 +503,92 @@ function TuViPage() {
                     ))}
                   </div>
                 </div>
-                <div className="tuvi-analysis-card">
-                  <h3>🌟 Sao Chiếu Mệnh</h3>
-                  <div className="tuvi-stars-info">
-                    <div className="tuvi-star-section">
-                      <h4><i className="fas fa-star"></i> Chính Tinh</h4>
-                      {analysis.stars?.chinhTinh?.map((star, idx) => (
-                        <div key={idx} className="tuvi-star-item">
-                          <h5>{star.name}</h5>
-                          <p className="tuvi-star-desc">{star.desc}</p>
-                          <div className="tuvi-star-traits">
-                            <div className="tuvi-traits-good">
-                              <h6>Điểm Mạnh</h6>
-                              <ul>
-                                {star.good?.map((trait, i) => (
-                                  <li key={i}><i className="fas fa-check"></i> {trait}</li>
-                                ))}
-                              </ul>
+
+                {/* Kiểm tra stars có tồn tại không */}
+                {analysis.stars && (
+                  <div className="tuvi-analysis-card">
+                    <h3>🌟 Sao Chiếu Mệnh</h3>
+                    <div className="tuvi-stars-info">
+                      {analysis.stars.chinhTinh && analysis.stars.chinhTinh.length > 0 && (
+                        <div className="tuvi-star-section">
+                          <h4><i className="fas fa-star"></i> Chính Tinh</h4>
+                          {analysis.stars.chinhTinh.map((star, idx) => (
+                            <div key={idx} className="tuvi-star-item">
+                              <h5>{star.name}</h5>
+                              <p className="tuvi-star-desc">{star.desc}</p>
+                              <div className="tuvi-star-traits">
+                                <div className="tuvi-traits-good">
+                                  <h6>Điểm Mạnh</h6>
+                                  <ul>
+                                    {(star.good || []).map((trait, i) => (
+                                      <li key={i}><i className="fas fa-check"></i> {trait}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="tuvi-traits-bad">
+                                  <h6>Điểm Cần Lưu Ý</h6>
+                                  <ul>
+                                    {(star.bad || []).map((trait, i) => (
+                                      <li key={i}><i className="fas fa-times"></i> {trait}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
                             </div>
-                            <div className="tuvi-traits-bad">
-                              <h6>Điểm Cần Lưu Ý</h6>
-                              <ul>
-                                {star.bad?.map((trait, i) => (
-                                  <li key={i}><i className="fas fa-times"></i> {trait}</li>
-                                ))}
-                              </ul>
+                          ))}
+                        </div>
+                      )}
+
+                      {analysis.stars.phuTinh && analysis.stars.phuTinh.length > 0 && (
+                        <div className="tuvi-star-section">
+                          <h4><i className="fas fa-star-half-alt"></i> Phụ Tinh</h4>
+                          {analysis.stars.phuTinh.map((star, idx) => (
+                            <div key={idx} className="tuvi-star-item">
+                              <h5>{star.name}</h5>
+                              <p className="tuvi-star-desc">{star.desc}</p>
+                              <div className="tuvi-star-traits">
+                                <div className="tuvi-traits-good">
+                                  <h6>Ảnh Hưởng Tích Cực</h6>
+                                  <ul>
+                                    {(star.good || []).map((trait, i) => (
+                                      <li key={i}><i className="fas fa-check"></i> {trait}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                                <div className="tuvi-traits-bad">
+                                  <h6>Ảnh Hưởng Cần Lưu Ý</h6>
+                                  <ul>
+                                    {(star.bad || []).map((trait, i) => (
+                                      <li key={i}><i className="fas fa-times"></i> {trait}</li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              </div>
                             </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {analysis.stars.hourPalace && (
+                        <div className="tuvi-star-section">
+                          <h4><i className="fas fa-compass"></i> Cung Giờ</h4>
+                          <div className="tuvi-hour-palace">
+                            <p>{analysis.stars.hourPalace}</p>
                           </div>
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="tuvi-star-section">
-                      <h4><i className="fas fa-star-half-alt"></i> Phụ Tinh</h4>
-                      {analysis.stars?.phuTinh?.map((star, idx) => (
-                        <div key={idx} className="tuvi-star-item">
-                          <h5>{star.name}</h5>
-                          <p className="tuvi-star-desc">{star.desc}</p>
-                          <div className="tuvi-star-traits">
-                            <div className="tuvi-traits-good">
-                              <h6>Ảnh Hưởng Tích Cực</h6>
-                              <ul>
-                                {star.good?.map((trait, i) => (
-                                  <li key={i}><i className="fas fa-check"></i> {trait}</li>
-                                ))}
-                              </ul>
-                            </div>
-                            <div className="tuvi-traits-bad">
-                              <h6>Ảnh Hưởng Cần Lưu Ý</h6>
-                              <ul>
-                                {star.bad?.map((trait, i) => (
-                                  <li key={i}><i className="fas fa-times"></i> {trait}</li>
-                                ))}
-                              </ul>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <div className="tuvi-star-section">
-                      <h4><i className="fas fa-compass"></i> Cung Giờ</h4>
-                      <div className="tuvi-hour-palace">
-                        <p>{analysis.stars?.hourPalace}</p>
-                      </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                )}
                     
                 <div className="tuvi-analysis-card">
                   <h3>📋 Phân Tích Tổng Hợp</h3>
                   <div className="tuvi-analysis-text">
-                    {analysis.analysis.split("\n").map((line, idx) => (
+                    {(analysis.analysis || '').split("\n").map((line, idx) => (
                       <p key={idx}>{line}</p>
                     ))}
                   </div>
                 </div>
-
-                
               </div>
             ) : (
               <div className="tuvi-no-analysis">

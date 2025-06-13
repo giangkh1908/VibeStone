@@ -12,7 +12,7 @@ const formatPrice = (price) => {
 
 const FoodDisplay = ({category}) => {
   const { food_list, addToCart, url } = useContext(StoreContext);
-  const [randomProducts, setRandomProducts] = useState([]);
+  const [latestProducts, setLatestProducts] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
@@ -22,7 +22,7 @@ const FoodDisplay = ({category}) => {
   // Kiểm tra xem food_list có tồn tại và có phải là mảng không
   const validFoodList = Array.isArray(food_list) ? food_list : [];
 
-  // Hàm để lấy 8 sản phẩm ngẫu nhiên từ danh sách
+  // Hàm để lấy 8 sản phẩm mới nhất từ danh sách
   useEffect(() => {
     if (validFoodList.length > 0) {
       // Lọc sản phẩm theo category nếu cần
@@ -30,13 +30,14 @@ const FoodDisplay = ({category}) => {
         ? validFoodList 
         : validFoodList.filter(item => item.category === category);
       
-      // Lấy 8 sản phẩm ngẫu nhiên hoặc tất cả nếu ít hơn 8
-      const getRandomProducts = (products, count) => {
-        const shuffled = [...products].sort(() => 0.5 - Math.random());
-        return shuffled.slice(0, Math.min(count, products.length));
+      // Sắp xếp theo thời gian tạo mới nhất và lấy 8 sản phẩm đầu tiên
+      const getLatestProducts = (products, count) => {
+        return [...products]
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .slice(0, Math.min(count, products.length));
       };
       
-      setRandomProducts(getRandomProducts(filteredList, 8));
+      setLatestProducts(getLatestProducts(filteredList, 8));
     }
   }, [validFoodList, category]);
 
@@ -53,7 +54,7 @@ const FoodDisplay = ({category}) => {
   // Hàm thêm vào giỏ hàng với hiệu ứng
   const handleAddToCart = (itemId) => {
     // Tìm thông tin sản phẩm để hiển thị thông báo
-    const product = randomProducts.find((p) => p._id === itemId);
+    const product = latestProducts.find((p) => p._id === itemId);
 
     // Cập nhật state
     if (!cart[itemId]) {
@@ -83,7 +84,7 @@ const FoodDisplay = ({category}) => {
       const cartIcon = document.querySelector(".navbar-search-icon");
       if (cartIcon) {
         // Tìm thông tin sản phẩm
-        const product = randomProducts.find((p) => p._id === itemId);
+        const product = latestProducts.find((p) => p._id === itemId);
         if (!product) return;
 
         const productRect = productElement.getBoundingClientRect();
@@ -166,10 +167,10 @@ const FoodDisplay = ({category}) => {
 
   return (
     <div className='food-display' id='food-display'>
-      <h2>Sản Phẩm Nổi Bật</h2>
+      <h2>Sản Phẩm Mới Nhất</h2>
       <div className='food-display-list'>
-        {randomProducts.length > 0 ? (
-          randomProducts.map((item) => (
+        {latestProducts.length > 0 ? (
+          latestProducts.map((item) => (
             <div key={item._id} className="food-item-container" data-product-id={item._id}>
               <div className="product-image" onClick={() => showProductDetail(item)}>
                 <img src={item.image} alt={item.name} />

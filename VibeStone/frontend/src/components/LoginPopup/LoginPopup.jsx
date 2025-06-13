@@ -8,7 +8,7 @@ import { notifyLogin, notifyRegistration, notifyError } from '../../utils/notifi
 
 const LoginPopup = ({ setShowLogin }) => {
 
-    const { setToken, url,loadCartData } = useContext(StoreContext)
+    const { setToken, url, loadCartData } = useContext(StoreContext)
     const [currState, setCurrState] = useState("Đăng ký");
 
     const [data, setData] = useState({
@@ -33,47 +33,94 @@ const LoginPopup = ({ setShowLogin }) => {
         else {
             new_url += "/api/user/register"
         }
+
+        // Nếu là đăng ký - hiển thị toast và đóng popup ngay lập tức
+        if (currState === "Đăng ký") {
+            // Hiển thị toast ngay
+            toast.success("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.", {
+                position: "top-right",
+                autoClose: 7000,
+                hideProgressBar: false,
+                closeOnClick: true,
+                pauseOnHover: true,
+                draggable: true,
+            });
+            
+            // Đóng popup ngay
+            setShowLogin(false);
+            
+            // Gọi API đăng ký ngầm (không await)
+            registerUser(new_url, data);
+            return;
+        }
+
+        // Xử lý đăng nhập bình thường (chờ API response)
         try {
             const response = await axios.post(new_url, data);
             if (response.data.success) {
-                // Lưu token vào state và localStorage
-                setToken(response.data.token)
-                localStorage.setItem("token", response.data.token)
-                
-                if (currState === "Đăng nhập") {
-                    // Đăng nhập: Đồng bộ giỏ hàng từ database
-                    await loadCartData({token:response.data.token})
-                    
-                    // Hiển thị thông báo đăng nhập thành công
-                    notifyLogin(data.name || data.email)
-                } else {
-                    // Đăng ký: Nếu có giỏ hàng trong localStorage, đồng bộ lên database
-                    const localCart = localStorage.getItem('cart');
-                    if (localCart) {
-                        const cartItems = JSON.parse(localCart);
-                        // Đồng bộ từng sản phẩm lên database
-                        for (const itemId in cartItems) {
-                            const quantity = cartItems[itemId];
-                            for (let i = 0; i < quantity; i++) {
-                                await axios.post(url + "/api/cart/add", { itemId }, { headers: { token: response.data.token } });
-                            }
-                        }
-                        // Sau khi đồng bộ xong, lấy lại giỏ hàng từ database
-                        await loadCartData({token:response.data.token});
-                    }
-                    
-                    // Hiển thị thông báo đăng ký thành công
-                    notifyRegistration()
+                if (response.data.needVerification) {
+                    toast.info("Tài khoản chưa được xác thực. Vui lòng kiểm tra email.", {
+                        position: "top-right",
+                        autoClose: 5000,
+                        hideProgressBar: false,
+                        closeOnClick: true,
+                        pauseOnHover: true,
+                        draggable: true,
+                    });
+                    setShowLogin(false);
+                    return;
                 }
                 
-                // Đóng popup đăng nhập
+                // Lưu token và đăng nhập thành công
+                setToken(response.data.token)
+                localStorage.setItem("token", response.data.token)
+                localStorage.setItem("userName", response.data.userName)
+                localStorage.setItem("userEmail", data.email)
+                await loadCartData({token: response.data.token})
+                notifyLogin(data.name || data.email)
                 setShowLogin(false)
             }
             else {
                 notifyError(response.data.message)
             }
         } catch (error) {
-            notifyError(error.response?.data?.message || "Đã xảy ra lỗi")
+            if (error.response?.data?.needVerification) {
+                toast.info("Tài khoản chưa được xác thực. Vui lòng kiểm tra email để xác thực tài khoản.", {
+                    position: "top-right",
+                    autoClose: 5000,
+                    hideProgressBar: false,
+                    closeOnClick: true,
+                    pauseOnHover: true,
+                    draggable: true,
+                });
+            } else {
+                notifyError(error.response?.data?.message || "Đã xảy ra lỗi")
+            }
+        }
+    }
+
+    // Hàm đăng ký chạy ngầm
+    const registerUser = async (url, userData) => {
+        try {
+            const response = await axios.post(url, userData);
+            console.log('Registration response:', response.data);
+            
+            // Nếu có lỗi thực sự (không phải needVerification), có thể hiển thị toast error
+            if (!response.data.success && !response.data.needVerification) {
+                toast.error("Có lỗi xảy ra khi đăng ký: " + response.data.message, {
+                    position: "top-right",
+                    autoClose: 5000,
+                });
+            }
+        } catch (error) {
+            console.error('Registration error:', error);
+            // Chỉ hiển thị lỗi nghiêm trọng
+            if (!error.response?.data?.needVerification) {
+                toast.error("Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.", {
+                    position: "top-right",
+                    autoClose: 5000,
+                });
+            }
         }
     }
 
@@ -85,7 +132,7 @@ const LoginPopup = ({ setShowLogin }) => {
                 </div>
                 <div className="login-popup-inputs">
                     {currState === "Đăng ký" ? <input name='name' onChange={onChangeHandler} value={data.name} type="text" placeholder='Tên tài khoản' required /> : <></>}
-                    <input name='email' onChange={onChangeHandler} value={data.email} type="email" placeholder='Email của bạn' />
+                    <input name='email' onChange={onChangeHandler} value={data.email} type="email" placeholder='Email của bạn' required />
                     <input name='password' onChange={onChangeHandler} value={data.password} type="password" placeholder='Mật khẩu' required />
                 </div>
                 <button>{currState === "Đăng nhập" ? "Đăng nhập" : "Đăng ký"}</button>
