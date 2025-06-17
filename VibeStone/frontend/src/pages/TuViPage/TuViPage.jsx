@@ -3,7 +3,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./TuViPage.css"; // Import your CSS styles
 
-const API_BASE = "http://localhost:5000/api"; // Change port if needed
+const API_BASE = "https://vibe-stone-backend.vercel.app/api"; // Change port if needed
 
 function TuViPage() {
   const [activeTab, setActiveTab] = useState("info");
