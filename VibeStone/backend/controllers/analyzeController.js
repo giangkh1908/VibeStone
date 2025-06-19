@@ -7,7 +7,11 @@ export const analyzeUser = async (req, res) => {
     const { name, birthYear, birthMonth, birthDay, birthHour, birthMinute, gender, preferences } = req.body;
 
     // Validate required fields
-    if (!name || !birthYear || !birthMonth || !birthDay || !birthHour || !birthMinute) {
+    if (!name || birthYear === undefined || birthYear === null || 
+        birthMonth === undefined || birthMonth === null ||
+        birthDay === undefined || birthDay === null ||
+        birthHour === undefined || birthHour === null ||
+        birthMinute === undefined || birthMinute === null) {
       return res.status(400).json({
         success: false,
         error: "Vui lòng điền đầy đủ thông tin bắt buộc"
