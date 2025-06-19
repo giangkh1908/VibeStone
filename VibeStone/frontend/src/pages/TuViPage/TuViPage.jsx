@@ -78,7 +78,7 @@ function TuViPage() {
 
     // Validate minute
     const minute = parseInt(userInfo.birthMinute);
-    if (minute < 0 || minute > 59) {
+    if (minute <= 0 || minute > 59) {
       setError("Phút sinh phải từ 0 đến 59");
       return false;
     }
