@@ -26,43 +26,47 @@ function TuViPage() {
       setError("Vui lòng nhập họ tên");
       return false;
     }
-    if (!userInfo.birthYear) {
+    if (userInfo.birthYear === "" || userInfo.birthYear === null || userInfo.birthYear === undefined) {
       setError("Vui lòng nhập năm sinh");
       return false;
     }
-    if (!userInfo.birthMonth) {
+    if (userInfo.birthMonth === "" || userInfo.birthMonth === null || userInfo.birthMonth === undefined) {
       setError("Vui lòng nhập tháng sinh");
       return false;
     }
-    if (!userInfo.birthDay) {
+    if (userInfo.birthDay === "" || userInfo.birthDay === null || userInfo.birthDay === undefined) {
       setError("Vui lòng nhập ngày sinh");
       return false;
     }
-    if (!userInfo.birthHour) {
+    if (userInfo.birthHour === "" || userInfo.birthHour === null || userInfo.birthHour === undefined) {
       setError("Vui lòng nhập giờ sinh");
       return false;
     }
-    if (!userInfo.birthMinute) {
+    if (userInfo.birthMinute === "" || userInfo.birthMinute === null || userInfo.birthMinute === undefined) {
       setError("Vui lòng nhập phút sinh");
       return false;
     }
 
     // Validate year
     const year = parseInt(userInfo.birthYear);
-    if (year < 1900 || year > 2100) {
+    if (isNaN(year) || year < 1900 || year > 2100) {
       setError("Năm sinh phải từ 1900 đến 2100");
       return false;
     }
 
     // Validate month
     const month = parseInt(userInfo.birthMonth);
-    if (month < 1 || month > 12) {
+    if (isNaN(month) || month < 1 || month > 12) {
       setError("Tháng sinh phải từ 1 đến 12");
       return false;
     }
 
     // Validate day
     const day = parseInt(userInfo.birthDay);
+    if (isNaN(day)) {
+      setError("Ngày sinh không hợp lệ");
+      return false;
+    }
     const daysInMonth = new Date(year, month, 0).getDate();
     if (day < 1 || day > daysInMonth) {
       setError(`Ngày sinh phải từ 1 đến ${daysInMonth} cho tháng ${month}`);
@@ -71,14 +75,14 @@ function TuViPage() {
 
     // Validate hour
     const hour = parseInt(userInfo.birthHour);
-    if (hour < 0 || hour > 23) {
+    if (isNaN(hour) || hour < 0 || hour > 23) {
       setError("Giờ sinh phải từ 0 đến 23");
       return false;
     }
 
     // Validate minute
     const minute = parseInt(userInfo.birthMinute);
-    if (minute <= 0 || minute > 59) {
+    if (isNaN(minute) || minute < 0 || minute > 59) {
       setError("Phút sinh phải từ 0 đến 59");
       return false;
     }
@@ -136,11 +140,11 @@ function TuViPage() {
   const isFormValid = () => {
     return (
       userInfo.name.trim() &&
-      userInfo.birthYear &&
-      userInfo.birthMonth &&
-      userInfo.birthDay &&
-      userInfo.birthHour &&
-      userInfo.birthMinute
+      userInfo.birthYear !== "" &&
+      userInfo.birthMonth !== "" &&
+      userInfo.birthDay !== "" &&
+      userInfo.birthHour !== "" &&
+      userInfo.birthMinute !== ""
     );
   };
 
