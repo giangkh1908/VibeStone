@@ -406,3 +406,39 @@
 .delete-button:active {
   transform: translateY(0);
 }
+
+.order-summary-filter {
+  margin-bottom: 16px;
+  background: #fff;
+  padding: 6px 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 40px;
+}
+
+.order-summary-total {
+  font-weight: 500;
+  font-size: 15px;
+}
+
+.order-summary-amount {
+  color: #2e7d32;
+}
+
+.order-status-filter {
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+.order-list-scroll {
+  max-height: 75vh;
+  overflow-y: auto;
+}

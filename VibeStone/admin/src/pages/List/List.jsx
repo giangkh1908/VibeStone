@@ -5,12 +5,28 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
 
+const getSoldCountMap = (orders) => {
+  // Map: productId => sold count
+  const soldMap = {};
+  orders.forEach(order => {
+    if (order.status === 'Đã giao hàng') {
+      order.items.forEach(item => {
+        if (item._id) {
+          soldMap[item._id] = (soldMap[item._id] || 0) + (item.quantity || 0);
+        }
+      });
+    }
+  });
+  return soldMap;
+};
+
 const List = () => {
   const navigate = useNavigate();
   const [list, setList] = useState([]);
   const [filteredList, setFilteredList] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterCategory, setFilterCategory] = useState('all');
+  const [soldCountMap, setSoldCountMap] = useState({});
 
   const fetchList = async () => {
     const response = await axios.get(`${url}/api/food/list`)
@@ -23,8 +39,20 @@ const List = () => {
     }
   }
 
+  const fetchOrdersAndCountSold = async () => {
+    try {
+      const response = await axios.get(`${url}/api/order/list`);
+      if (response.data.success) {
+        setSoldCountMap(getSoldCountMap(response.data.data));
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
   useEffect(() => {
     fetchList();
+    fetchOrdersAndCountSold();
   }, [])
 
   useEffect(() => {
@@ -107,6 +135,7 @@ const List = () => {
           <b>Loại sản phẩm</b>
           <b>Giá sản phẩm</b>
           <b>Thao tác</b>
+          <b>Đã bán</b>
         </div>
         {filteredList.map((item, index) => {
           return (
@@ -119,6 +148,7 @@ const List = () => {
                 <span className='edit-btn cursor' onClick={() => editFood(item._id)}>✎</span>
                 <span className='delete-btn cursor' onClick={() => removeFood(item._id)}>✕</span>
               </div>
+              <p>{soldCountMap[item._id] || 0}</p>
             </div>
           )
         })}

@@ -45,7 +45,10 @@ const Order = () => {
       status: event.target.value
     })
     if (response.data.success) {
+      toast.success('Cập nhật trạng thái đơn hàng thành công!');
       await fetchAllOrders();
+    } else {
+      toast.error('Cập nhật trạng thái đơn hàng thất bại!');
     }
   }
 
@@ -72,11 +75,53 @@ const Order = () => {
     fetchAllOrders();
   }, [])
 
+  // Đếm số lượng đơn hàng theo từng trạng thái
+  const countByStatus = (status) => orders.filter(order => order.status === status).length;
+
+  // Tính tổng tiền của các đơn hàng ở trạng thái 'Đã giao hàng'
+  const totalDeliveredAmount = orders
+    .filter(order => order.status === 'Đã giao hàng')
+    .reduce((sum, order) => sum + order.amount, 0);
+
+  // State cho bộ lọc trạng thái
+  const [filterStatus, setFilterStatus] = useState('Tất cả');
+
+  // Danh sách trạng thái đơn hàng
+  const statusOptions = ['Tất cả', 'Đang xử lý', 'Đang giao hàng', 'Đã giao hàng'];
+
+  // Lọc đơn hàng theo trạng thái
+  const filteredOrders = filterStatus === 'Tất cả'
+    ? orders
+    : orders.filter(order => order.status === filterStatus);
+
   return (
     <div className='order add'>
       <h3>Đơn hàng</h3>
-      <div className="order-list">
-        {orders.map((order, index) => (
+      {/* Thống kê số lượng đơn hàng theo trạng thái */}
+      <div style={{ display: 'flex', gap: '24px', marginBottom: '16px' }}>
+        <div><b>Đang xử lý:</b> {countByStatus('Đang xử lý')}</div>
+        <div><b>Đang giao hàng:</b> {countByStatus('Đang giao hàng')}</div>
+        <div><b>Đã giao hàng:</b> {countByStatus('Đã giao hàng')}</div>
+      </div>
+      {/* Tổng tiền các đơn hàng đã giao + Bộ lọc trạng thái */}
+      <div className="order-summary-filter">
+        <span className="order-summary-total">
+          Tổng doanh thu: <span className="order-summary-amount">{formatCurrency(totalDeliveredAmount)}{currency}</span>
+        </span>
+        
+        <select
+          className="order-status-filter"
+          value={filterStatus}
+          onChange={e => setFilterStatus(e.target.value)}
+        >
+          {statusOptions.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+      </div>
+      {/* Danh sách đơn hàng với scroll riêng */}
+      <div className="order-list order-list-scroll">
+        {filteredOrders.map((order, index) => (
           <div key={index} className='order-item'>
             <img src={assets.parcel_icon} alt="" />
             <div>
