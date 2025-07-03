@@ -17,8 +17,16 @@ const Sidebar = () => {
         </NavLink>
         <NavLink to='/orders' className="sidebar-option">
             <img src={assets.order_icon} alt="" />
-            <p>Đơn hàng</p>
+            <p>Quản lý đơn hàng</p>
         </NavLink>
+        {/* <NavLink to='/users' className="sidebar-option">
+            <img src={assets.order_icon} alt="" />
+            <p>Quản lý người dùng</p>
+        </NavLink>
+        <NavLink to='/feedback' className="sidebar-option">
+            <img src={assets.order_icon} alt="" />
+            <p>Quản lý góp ý</p>
+        </NavLink> */}
       </div>
     </div>
   )
