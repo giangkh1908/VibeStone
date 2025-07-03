@@ -9,21 +9,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Set up multer storage for temporary file storage
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = path.join(__dirname, '../uploads/temp');
-    
-    // Create the directory if it doesn't exist
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  }
-});
+const storage = multer.memoryStorage();
 
 // Filter to accept only image files
 const fileFilter = (req, file, cb) => {
@@ -37,7 +23,7 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ 
   storage: storage,
   fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB max file size
+  limits: { fileSize: 10 * 1024 * 1024 } // 5MB max file size
 });
 
 // Middleware to upload to Cloudinary
@@ -47,26 +33,35 @@ const uploadToCloudinary = async (req, res, next) => {
   }
 
   try {
-    // Upload the file to Cloudinary
-    const result = await cloudinary.uploader.upload(req.file.path, {
-      folder: 'vibestone', // Create a folder in your Cloudinary account for organization
-      use_filename: true
+    console.log('📤 Uploading to Cloudinary from buffer...');
+    
+    // Upload từ buffer thay vì file path
+    const result = await new Promise((resolve, reject) => {
+      cloudinary.uploader.upload_stream(
+        {
+          folder: 'vibestone',
+          resource_type: 'auto'
+        },
+        (error, result) => {
+          if (error) reject(error);
+          else resolve(result);
+        }
+      ).end(req.file.buffer);
     });
+
+    console.log('✅ Cloudinary upload success:', result.secure_url);
 
     // Add the Cloudinary URL to the request
     req.cloudinaryUrl = result.secure_url;
     req.cloudinaryPublicId = result.public_id;
 
-    // Delete the temporary file
-    fs.unlinkSync(req.file.path);
     next();
   } catch (error) {
-    console.error('Cloudinary upload error:', error);
-    // Delete the temporary file on error
-    if (req.file && req.file.path) {
-      fs.unlinkSync(req.file.path);
-    }
-    return res.status(500).json({ success: false, message: 'Lỗi khi tải hình ảnh' });
+    console.error('❌ Cloudinary upload error:', error);
+    return res.status(500).json({ 
+      success: false, 
+      message: 'Lỗi khi tải hình ảnh: ' + error.message 
+    });
   }
 };
 

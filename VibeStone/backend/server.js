@@ -10,10 +10,10 @@ import analyzeRoutes from "./routes/analyzeRoutes.js";
 
 // app config
 const app = express();
-const port =  5000;
-// process.env.PORT ||
+const port = process.env.PORT || 5000;
 // middlewares
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cors({
   origin: '*', // Tạm thời cho phép tất cả để test
   credentials: true,
@@ -35,18 +35,32 @@ app.use("/api", analyzeRoutes);
 // app.use("/images", express.static("uploads"));
 
 app.get("/", (req, res) => {
-  res.send("API Working");
+  res.json({
+    message: "API Working - VibeStone Backend",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'production'
+  });
+});
+
+// Test endpoint
+app.get("/api/test", (req, res) => {
+  res.json({ 
+    success: true, 
+    message: "Backend kết nối thành công!",
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  console.error('❌ Server Error:', err);
   res.status(500).json({
     success: false,
-    error: 'Đã xảy ra lỗi server'
+    message: 'Đã xảy ra lỗi server',
+    error: err.message
   });
 });
 
-app.listen(port, () =>
-  console.log(`Server started on http://localhost:${port}`)
-);
+app.listen(port, () => {
+  console.log(`🚀 Server started on port ${port}`);
+});
