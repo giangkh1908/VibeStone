@@ -63,13 +63,11 @@ const removeFood = async (req, res) => {
   }
 };
 
-// edit food
+// edit food - xử lý JSON data thay vì FormData
 const editFood = async (req, res) => {
   try {
     console.log("=== Edit Food Debug ===");
     console.log("Request body:", req.body);
-    console.log("Request file:", req.file);
-    console.log("Cloudinary URL:", req.cloudinaryUrl);
     
     const foodId = req.body.id;
     
@@ -101,20 +99,9 @@ const editFood = async (req, res) => {
       category: req.body.category || food.category,
     };
 
-    // Handle image update
-    if (req.cloudinaryUrl) {
-      console.log("✅ Updating image from Cloudinary middleware");
-      
-      // Delete old image if exists
-      if (food.cloudinary_id) {
-        console.log("🗑️ Deleting old image:", food.cloudinary_id);
-        await cloudinary.uploader.destroy(food.cloudinary_id);
-      }
-      
-      updateData.image = req.cloudinaryUrl;
-      updateData.cloudinary_id = req.cloudinaryPublicId;
-    } else if (req.body.imageUrl) {
-      console.log("✅ Updating image from direct URL");
+    // Handle image update từ direct Cloudinary upload
+    if (req.body.imageUrl) {
+      console.log("✅ Updating image with new URL:", req.body.imageUrl);
       
       // Delete old image if exists
       if (food.cloudinary_id) {
@@ -130,7 +117,6 @@ const editFood = async (req, res) => {
 
     console.log("✅ Updating with data:", updateData);
     
-    // Update the food item
     const updatedFood = await foodModel.findByIdAndUpdate(
       foodId, 
       updateData, 

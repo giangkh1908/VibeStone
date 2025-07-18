@@ -10,6 +10,7 @@ const Edit = () => {
     const navigate = useNavigate();
     const [image, setImage] = useState(false);
     const [currentImage, setCurrentImage] = useState('');
+    const [uploadProgress, setUploadProgress] = useState(0);
     const [data, setData] = useState({
         name: "",
         description: "",
@@ -22,12 +23,12 @@ const Edit = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                console.log("Fetching product with ID:", id); // Debug log
+                console.log("Fetching product with ID:", id);
                 const response = await axios.get(`${url}/api/food/list`);
                 if (response.data.success) {
                     const product = response.data.data.find(item => item._id === id);
                     if (product) {
-                        console.log("Product found:", product); // Debug log
+                        console.log("Product found:", product);
                         setData({
                             name: product.name,
                             description: product.description,
@@ -56,6 +57,48 @@ const Edit = () => {
         }
     }, [id, navigate]);
 
+    // Upload trực tiếp lên Cloudinary (copy từ Add.jsx)
+    const uploadImageToCloudinary = async (file) => {
+        try {
+            // Lấy signature từ backend
+            const signatureResponse = await axios.post(`${url}/api/upload/signature`);
+            const { signature, timestamp, cloudName, apiKey, folder } = signatureResponse.data;
+
+            // Tạo FormData để upload lên Cloudinary
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('signature', signature);
+            formData.append('timestamp', timestamp);
+            formData.append('api_key', apiKey);
+            formData.append('folder', folder);
+            formData.append('transformation', 'w_800,h_600,c_limit,q_auto,f_auto');
+
+            // Upload trực tiếp lên Cloudinary
+            const uploadResponse = await axios.post(
+                `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+                formData,
+                {
+                    onUploadProgress: (progressEvent) => {
+                        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                        setUploadProgress(percentCompleted);
+                    }
+                }
+            );
+
+            return {
+                success: true,
+                imageUrl: uploadResponse.data.secure_url,
+                cloudinaryId: uploadResponse.data.public_id
+            };
+        } catch (error) {
+            console.error('Cloudinary upload error:', error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    };
+
     const onSubmitHandler = async (event) => {
         event.preventDefault();
         
@@ -66,39 +109,55 @@ const Edit = () => {
 
         console.log("Starting edit with ID:", id);
         setSubmitting(true);
+        setUploadProgress(0);
         
         try {
-            const formData = new FormData();
-            formData.append("id", id);
-            formData.append("name", data.name);
-            formData.append("description", data.description);
-            formData.append("price", Number(data.price));
-            formData.append("category", data.category);
-            
+            let imageUrl = currentImage;
+            let cloudinaryId = null;
+
+            // Nếu có ảnh mới, upload lên Cloudinary trước
             if (image) {
-                formData.append("image", image);
-                console.log("New image selected:", image.name);
+                // Kiểm tra kích thước file
+                if (image.size > 5 * 1024 * 1024) {
+                    toast.error('File ảnh quá lớn. Vui lòng chọn ảnh nhỏ hơn 5MB');
+                    return;
+                }
+
+                toast.info('Đang upload ảnh...');
+                const uploadResult = await uploadImageToCloudinary(image);
+                
+                if (!uploadResult.success) {
+                    throw new Error(uploadResult.error);
+                }
+
+                imageUrl = uploadResult.imageUrl;
+                cloudinaryId = uploadResult.cloudinaryId;
             }
 
-            // Log FormData để debug
-            console.log("FormData contents:");
-            for (let [key, value] of formData.entries()) {
-                console.log(key, ":", value);
-            }
+            // Gửi thông tin sản phẩm (chỉ JSON, không có file)
+            const productData = {
+                id: id,
+                name: data.name,
+                description: data.description,
+                price: Number(data.price),
+                category: data.category,
+                imageUrl: imageUrl,
+                cloudinaryId: cloudinaryId
+            };
 
-            const response = await axios.post(`${url}/api/food/edit`, formData, {
+            console.log("Sending product data:", productData);
+
+            const response = await axios.post(`${url}/api/food/edit`, productData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'application/json',
                 },
-                timeout: 60000 // 60 seconds
+                timeout: 30000 // 30 seconds (đủ vì không upload file)
             });
             
             console.log("Full response:", response.data);
             
             if (response.data.success) {
                 toast.success('Sản phẩm đã được cập nhật thành công!');
-                
-                // Refresh page hoặc navigate về list
                 setTimeout(() => {
                     navigate('/list');
                 }, 1000);
@@ -116,6 +175,7 @@ const Edit = () => {
             }
         } finally {
             setSubmitting(false);
+            setUploadProgress(0);
         }
     };
 
@@ -150,10 +210,32 @@ const Edit = () => {
                     </label>
                     {image && (
                         <p style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>
-                            New image: {image.name}
+                            New image: {image.name} ({(image.size / 1024 / 1024).toFixed(2)} MB)
                         </p>
                     )}
+                    {submitting && uploadProgress > 0 && (
+                        <div style={{marginTop: '10px'}}>
+                            <div style={{
+                                width: '100%',
+                                height: '4px',
+                                backgroundColor: '#f0f0f0',
+                                borderRadius: '2px',
+                                overflow: 'hidden'
+                            }}>
+                                <div style={{
+                                    width: `${uploadProgress}%`,
+                                    height: '100%',
+                                    backgroundColor: '#4CAF50',
+                                    transition: 'width 0.3s ease'
+                                }}></div>
+                            </div>
+                            <p style={{fontSize: '12px', color: '#666', marginTop: '5px'}}>
+                                Uploading: {uploadProgress}%
+                            </p>
+                        </div>
+                    )}
                 </div>
+                
                 <div className='add-product-name flex-col'>
                     <p>Tên sản phẩm</p>
                     <input 
@@ -166,6 +248,7 @@ const Edit = () => {
                         disabled={submitting}
                     />
                 </div>
+                
                 <div className='add-product-description flex-col'>
                     <p>Mô tả sản phẩm</p>
                     <textarea 
@@ -178,6 +261,7 @@ const Edit = () => {
                         disabled={submitting}
                     />
                 </div>
+                
                 <div className='add-category-price'>
                     <div className='add-category flex-col'>
                         <p>Loại sản phẩm</p>
@@ -210,8 +294,9 @@ const Edit = () => {
                         />
                     </div>
                 </div>
+                
                 <button type='submit' className='add-btn' disabled={submitting}>
-                    {submitting ? 'Đang cập nhật...' : 'Cập nhật sản phẩm'}
+                    {submitting ? `Đang xử lý...` : 'Cập nhật sản phẩm'}
                 </button>
             </form>
         </div>
