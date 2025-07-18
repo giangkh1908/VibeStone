@@ -55,29 +55,32 @@ const Edit = () => {
 
     const onSubmitHandler = async (event) => {
         event.preventDefault();
-
-        const formData = new FormData();
-        formData.append("id", id);
-        formData.append("name", data.name);
-        formData.append("description", data.description);
-        formData.append("price", Number(data.price));
-        formData.append("category", data.category);
         
-        if (image) {
-            formData.append("image", image);
-        }
-
         try {
+            const formData = new FormData();
+            formData.append("id", id); // Đảm bảo có ID
+            formData.append("name", data.name);
+            formData.append("description", data.description);
+            formData.append("price", Number(data.price));
+            formData.append("category", data.category);
+            
+            if (image) {
+                formData.append("image", image);
+            }
+
+            console.log("Sending edit request with ID:", id); // Debug log
+            
             const response = await axios.post(`${url}/api/food/edit`, formData);
+            
             if (response.data.success) {
-                toast.success(response.data.message);
+                toast.success('Sản phẩm đã được cập nhật thành công!');
                 navigate('/list');
             } else {
-                toast.error(response.data.message || "Error updating product");
+                toast.error(response.data.message || 'Cập nhật sản phẩm thất bại');
             }
         } catch (error) {
-            console.error(error);
-            toast.error("Error updating product");
+            console.error('Edit error:', error);
+            toast.error('Lỗi khi cập nhật sản phẩm: ' + error.message);
         }
     };
 
