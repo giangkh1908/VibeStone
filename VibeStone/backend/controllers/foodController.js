@@ -66,34 +66,35 @@ const removeFood = async (req, res) => {
 // edit food
 const editFood = async (req, res) => {
   try {
-    console.log("Edit Food: Starting process...");
+    console.log("=== Edit Food Debug ===");
     console.log("Request body:", req.body);
+    console.log("All form fields:", Object.keys(req.body));
+    console.log("ID value:", req.body.id);
+    console.log("ID type:", typeof req.body.id);
     
     const foodId = req.body.id;
     
-    // Kiểm tra ID có được gửi không
     if (!foodId) {
-      console.log("Edit Food: No ID provided");
+      console.log("❌ Food ID is missing in request body");
       return res.json({ success: false, message: "Food ID is required" });
     }
 
-    // Kiểm tra ID có đúng format ObjectId không
     if (!mongoose.Types.ObjectId.isValid(foodId)) {
-      console.log("Edit Food: Invalid ObjectId format:", foodId);
+      console.log("❌ Invalid ObjectId format:", foodId);
       return res.json({ success: false, message: "Invalid Food ID format" });
     }
 
-    console.log("Edit Food: Looking for food with ID:", foodId);
+    console.log("✅ Looking for food with ID:", foodId);
     const food = await foodModel.findById(foodId);
     
     if (!food) {
-      console.log("Edit Food: Food not found in database");
+      console.log("❌ Food not found in database");
       return res.json({ success: false, message: "Food not found" });
     }
 
-    console.log("Edit Food: Found food:", food.name);
-
-    // Update fields
+    console.log("✅ Found food:", food.name);
+    
+    // Update logic...
     const updateData = {
       name: req.body.name || food.name,
       price: req.body.price || food.price,
@@ -101,37 +102,23 @@ const editFood = async (req, res) => {
       category: req.body.category || food.category,
     };
 
-    // If there's a new image URL (for direct Cloudinary upload)
-    if (req.body.imageUrl) {
-      console.log("Edit Food: Updating with new image URL");
-      // Delete the old image from Cloudinary if it exists
+    // Handle image update if present
+    if (req.cloudinaryUrl) {
       if (food.cloudinary_id) {
         await cloudinary.uploader.destroy(food.cloudinary_id);
       }
-      
-      updateData.image = req.body.imageUrl;
-      updateData.cloudinary_id = req.body.cloudinaryId;
-    }
-    // If there's a new image from middleware (old method)
-    else if (req.cloudinaryUrl) {
-      console.log("Edit Food: Updating with middleware image");
-      // Delete the old image from Cloudinary if it exists
-      if (food.cloudinary_id) {
-        await cloudinary.uploader.destroy(food.cloudinary_id);
-      }
-      
       updateData.image = req.cloudinaryUrl;
       updateData.cloudinary_id = req.cloudinaryPublicId;
     }
 
-    console.log("Edit Food: Update data:", updateData);
-    
+    console.log("✅ Updating with data:", updateData);
     await foodModel.findByIdAndUpdate(foodId, updateData);
-    console.log("Edit Food: Update successful");
     
+    console.log("✅ Update successful");
     res.json({ success: true, message: "Food Updated Successfully" });
+    
   } catch (error) {
-    console.log("Edit Food: Error:", error);
+    console.log("❌ Edit Food Error:", error);
     res.json({ success: false, message: "Error updating food: " + error.message });
   }
 };
