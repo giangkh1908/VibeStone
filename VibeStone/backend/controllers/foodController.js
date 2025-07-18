@@ -14,11 +14,19 @@ const listFood = async (req, res) => {
 };
 
 // add food
-const addFood = async (req, res) => {
+    const addFood = async (req, res) => {
   try {
+    console.log("Add Food: Starting process...");
     // Use the Cloudinary URL instead of local file path
     const imageUrl = req.cloudinaryUrl;
     const imageId = req.cloudinaryPublicId;
+
+    if (!imageUrl) {
+      console.log("Add Food: No Cloudinary URL found. Image upload might have failed.");
+      return res.json({ success: false, message: "Image upload failed or no image provided." });
+    }
+
+    console.log("Add Food: Cloudinary URL obtained:", imageUrl);
 
     const data = new foodModel({
       name: req.body.name,
@@ -29,10 +37,12 @@ const addFood = async (req, res) => {
       cloudinary_id: imageId // Store the Cloudinary public ID for later operations
     });
 
+    console.log("Add Food: Attempting to save to database...");
     await data.save();
+    console.log("Add Food: Successfully saved to database.");
     res.json({ success: true, message: "Food Added" });
   } catch (error) {
-    console.log(error);
+    console.log("Add Food: Error during process:", error);
     res.json({ success: false, message: "Error" });
   }
 };
