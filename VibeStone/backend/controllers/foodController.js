@@ -13,37 +13,34 @@ const listFood = async (req, res) => {
   }
 };
 
-// add food
-    const addFood = async (req, res) => {
+// add food - chỉ lưu thông tin, không upload
+const addFood = async (req, res) => {
   try {
     console.log("Add Food: Starting process...");
-    // Use the Cloudinary URL instead of local file path
-    const imageUrl = req.cloudinaryUrl;
-    const imageId = req.cloudinaryPublicId;
+    
+    const { name, price, description, category, imageUrl, cloudinaryId } = req.body;
 
     if (!imageUrl) {
-      console.log("Add Food: No Cloudinary URL found. Image upload might have failed.");
-      return res.json({ success: false, message: "Image upload failed or no image provided." });
+      return res.json({ success: false, message: "Image URL is required" });
     }
 
-    console.log("Add Food: Cloudinary URL obtained:", imageUrl);
-
-    const data = new foodModel({
-      name: req.body.name,
-      price: req.body.price,
-      description: req.body.description,
-      category: req.body.category,
-      image: imageUrl, // Store the Cloudinary URL
-      cloudinary_id: imageId // Store the Cloudinary public ID for later operations
+    const food = new foodModel({
+      name,
+      price,
+      description,
+      category,
+      image: imageUrl,
+      cloudinary_id: cloudinaryId
     });
 
-    console.log("Add Food: Attempting to save to database...");
-    await data.save();
+    console.log("Add Food: Saving to database...");
+    await food.save();
     console.log("Add Food: Successfully saved to database.");
+    
     res.json({ success: true, message: "Food Added" });
   } catch (error) {
-    console.log("Add Food: Error during process:", error);
-    res.json({ success: false, message: "Error" });
+    console.log("Add Food: Error:", error);
+    res.json({ success: false, message: "Error adding food" });
   }
 };
 

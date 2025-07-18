@@ -3,6 +3,7 @@ import cors from "cors";
 import { connectDB } from "./config/db.js";
 import userRouter from "./routes/userRoute.js";
 import foodRouter from "./routes/foodRoute.js";
+import uploadRouter from "./routes/uploadRoute.js";
 import "dotenv/config";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
@@ -15,7 +16,13 @@ const port = process.env.PORT || 5000;
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cors({
-  origin: '*', // Tạm thời cho phép tất cả để test
+  origin: [
+    'http://localhost:5173',
+    'http://localhost:5175',
+    'http://localhost:5000',
+    'https://vibe-stone-admin.vercel.app',
+    'https://www.vibestoneoficial.store'
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'token']
@@ -27,6 +34,7 @@ connectDB();
 // api endpoints
 app.use("/api/user", userRouter);
 app.use("/api/food", foodRouter);
+app.use("/api/upload", uploadRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api", analyzeRoutes);
