@@ -68,9 +68,8 @@ const editFood = async (req, res) => {
   try {
     console.log("=== Edit Food Debug ===");
     console.log("Request body:", req.body);
-    console.log("All form fields:", Object.keys(req.body));
-    console.log("ID value:", req.body.id);
-    console.log("ID type:", typeof req.body.id);
+    console.log("Request file:", req.file);
+    console.log("Cloudinary URL:", req.cloudinaryUrl);
     
     const foodId = req.body.id;
     
@@ -94,7 +93,7 @@ const editFood = async (req, res) => {
 
     console.log("✅ Found food:", food.name);
     
-    // Update logic...
+    // Prepare update data
     const updateData = {
       name: req.body.name || food.name,
       price: req.body.price || food.price,
@@ -102,20 +101,44 @@ const editFood = async (req, res) => {
       category: req.body.category || food.category,
     };
 
-    // Handle image update if present
+    // Handle image update
     if (req.cloudinaryUrl) {
+      console.log("✅ Updating image from Cloudinary middleware");
+      
+      // Delete old image if exists
       if (food.cloudinary_id) {
+        console.log("🗑️ Deleting old image:", food.cloudinary_id);
         await cloudinary.uploader.destroy(food.cloudinary_id);
       }
+      
       updateData.image = req.cloudinaryUrl;
       updateData.cloudinary_id = req.cloudinaryPublicId;
+    } else if (req.body.imageUrl) {
+      console.log("✅ Updating image from direct URL");
+      
+      // Delete old image if exists
+      if (food.cloudinary_id) {
+        console.log("🗑️ Deleting old image:", food.cloudinary_id);
+        await cloudinary.uploader.destroy(food.cloudinary_id);
+      }
+      
+      updateData.image = req.body.imageUrl;
+      updateData.cloudinary_id = req.body.cloudinaryId;
+    } else {
+      console.log("ℹ️ No image update, keeping existing image");
     }
 
     console.log("✅ Updating with data:", updateData);
-    await foodModel.findByIdAndUpdate(foodId, updateData);
     
-    console.log("✅ Update successful");
-    res.json({ success: true, message: "Food Updated Successfully" });
+    // Update the food item
+    const updatedFood = await foodModel.findByIdAndUpdate(
+      foodId, 
+      updateData, 
+      { new: true }
+    );
+    
+    console.log("✅ Update successful:", updatedFood.name);
+    res.json({ success: true, message: "Food Updated Successfully", data: updatedFood });
     
   } catch (error) {
     console.log("❌ Edit Food Error:", error);

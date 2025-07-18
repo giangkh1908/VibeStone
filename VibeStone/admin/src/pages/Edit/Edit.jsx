@@ -59,21 +59,16 @@ const Edit = () => {
     const onSubmitHandler = async (event) => {
         event.preventDefault();
         
-        // Validate ID trước khi gửi
         if (!id) {
             toast.error("Missing product ID");
             return;
         }
 
-        console.log("Starting edit with ID:", id); // Debug log
-        console.log("Form data:", data); // Debug log
-        
+        console.log("Starting edit with ID:", id);
         setSubmitting(true);
         
         try {
             const formData = new FormData();
-            
-            // Explicitly append ID first
             formData.append("id", id);
             formData.append("name", data.name);
             formData.append("description", data.description);
@@ -85,38 +80,39 @@ const Edit = () => {
                 console.log("New image selected:", image.name);
             }
 
-            // Log FormData contents
+            // Log FormData để debug
             console.log("FormData contents:");
             for (let [key, value] of formData.entries()) {
                 console.log(key, ":", value);
             }
 
-            console.log("Sending edit request to:", `${url}/api/food/edit`);
-            
             const response = await axios.post(`${url}/api/food/edit`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },
-                timeout: 30000 // 30 second timeout
+                timeout: 60000 // 60 seconds
             });
             
-            console.log("Response:", response.data);
+            console.log("Full response:", response.data);
             
             if (response.data.success) {
                 toast.success('Sản phẩm đã được cập nhật thành công!');
-                navigate('/list');
+                
+                // Refresh page hoặc navigate về list
+                setTimeout(() => {
+                    navigate('/list');
+                }, 1000);
             } else {
+                console.error("Backend error:", response.data.message);
                 toast.error(response.data.message || 'Cập nhật sản phẩm thất bại');
             }
+            
         } catch (error) {
             console.error('Edit error:', error);
             if (error.response) {
-                console.error('Error response:', error.response.data);
                 toast.error(`Server error: ${error.response.data.message || error.response.status}`);
-            } else if (error.request) {
-                toast.error('Network error. Please check your connection.');
             } else {
-                toast.error('Error: ' + error.message);
+                toast.error('Network error: ' + error.message);
             }
         } finally {
             setSubmitting(false);
