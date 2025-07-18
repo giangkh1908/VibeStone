@@ -7,6 +7,6 @@ const router = express.Router();
 router.get("/list", listFood);
 router.post("/add", addFood);
 router.post("/remove", removeFood);
-router.put("/edit", editFood);
+router.post("/edit", editFood);
 
 export default router;
