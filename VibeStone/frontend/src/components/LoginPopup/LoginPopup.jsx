@@ -5,6 +5,7 @@ import { StoreContext } from '../../Context/StoreContext'
 import axios from 'axios'
 import { toast } from 'react-toastify'
 import { notifyLogin, notifyRegistration, notifyError } from '../../utils/notifications'
+import FacebookLogin from 'react-facebook-login'
 
 const LoginPopup = ({ setShowLogin }) => {
 
@@ -122,6 +123,36 @@ const LoginPopup = ({ setShowLogin }) => {
         }
     }
 
+    // Hàm xử lý đăng nhập Facebook
+    const handleFacebookLogin = async (response) => {
+        if (response.accessToken) {
+            try {
+                // Gửi thông tin Facebook tới backend
+                const loginResponse = await axios.post(url + "/api/user/facebook-login", {
+                    facebookId: response.id,
+                    name: response.name,
+                    email: response.email,
+                    picture: response.picture?.data?.url
+                });
+
+                if (loginResponse.data.success) {
+                    setToken(loginResponse.data.token)
+                    localStorage.setItem("token", loginResponse.data.token)
+                    await loadCartData({token: loginResponse.data.token})
+                    notifyLogin(response.name)
+                    setShowLogin(false)
+                } else {
+                    notifyError(loginResponse.data.message)
+                }
+            } catch (error) {
+                notifyError("Đăng nhập Facebook thất bại")
+                console.error('Facebook login error:', error)
+            }
+        } else {
+            console.log('Facebook login failed or cancelled');
+        }
+    }
+
     return (
         <div className='login-popup'>
             <form onSubmit={onLogin} className="login-popup-container">
@@ -134,6 +165,24 @@ const LoginPopup = ({ setShowLogin }) => {
                     <input name='password' onChange={onChangeHandler} value={data.password} type="password" placeholder='Mật khẩu' required />
                 </div>
                 <button>{currState === "Đăng nhập" ? "Đăng nhập" : "Đăng ký"}</button>
+                
+                {currState === "Đăng nhập" && (
+                    <div className="facebook-login-section">
+                        <div className="login-divider">
+                            <span>hoặc</span>
+                        </div>
+                        <FacebookLogin
+                            appId="1785232628750195"
+                            autoLoad={false}
+                            fields="name,email,picture"
+                            callback={handleFacebookLogin}
+                            textButton="Đăng nhập bằng Facebook"
+                            cssClass="facebook-login-button"
+                            icon="fa-facebook"
+                        />
+                    </div>
+                )}
+                
                 <div className="login-popup-condition">
                     <input type="checkbox" name="" id="" required/>
                     <p>Đồng ý với bảo mật và điều khoản!</p>

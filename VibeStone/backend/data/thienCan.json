@@ -1,0 +1,12 @@
+{
+  "Giáp": {"name": "Giáp", "hanTu": "甲", "nguHanh": "Mộc", "amDuong": "Dương"},
+  "Ất": {"name": "Ất", "hanTu": "乙", "nguHanh": "Mộc", "amDuong": "Âm"},
+  "Bính": {"name": "Bính", "hanTu": "丙", "nguHanh": "Hỏa", "amDuong": "Dương"},
+  "Đinh": {"name": "Đinh", "hanTu": "丁", "nguHanh": "Hỏa", "amDuong": "Âm"},
+  "Mậu": {"name": "Mậu", "hanTu": "戊", "nguHanh": "Thổ", "amDuong": "Dương"},
+  "Kỷ": {"name": "Kỷ", "hanTu": "己", "nguHanh": "Thổ", "amDuong": "Âm"},
+  "Canh": {"name": "Canh", "hanTu": "庚", "nguHanh": "Kim", "amDuong": "Dương"},
+  "Tân": {"name": "Tân", "hanTu": "辛", "nguHanh": "Kim", "amDuong": "Âm"},
+  "Nhâm": {"name": "Nhâm", "hanTu": "壬", "nguHanh": "Thủy", "amDuong": "Dương"},
+  "Quý": {"name": "Quý", "hanTu": "癸", "nguHanh": "Thủy", "amDuong": "Âm"}
+}

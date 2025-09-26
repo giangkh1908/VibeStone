@@ -8,6 +8,8 @@ const userSchema = new mongoose.Schema({
     isVerified: { type: Boolean, default: false },
     verificationToken: { type: String },
     verificationTokenExpires: { type: Date },
+    facebookId: { type: String },
+    picture: { type: String },
 }, { minimize: false })
 
 const userModel = mongoose.models.user || mongoose.model("user", userSchema);

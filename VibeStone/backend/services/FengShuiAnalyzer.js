@@ -1,607 +1,207 @@
+import { Lunar } from 'lunar-calendar-ts-vi';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Helper function to read JSON data with detailed error logging
+const loadJsonData = (fileName) => {
+  const filePath = path.resolve(__dirname, '..', 'data', fileName);
+  try {
+    const fileContent = fs.readFileSync(filePath, 'utf-8');
+    return JSON.parse(fileContent);
+  } catch (error) {
+    console.error(`FATAL: Could not read data file at ${filePath}`);
+    console.error('Error details:', error);
+    // Re-throw the error to crash the server, making the problem visible
+    throw new Error(`Failed to load data file: ${fileName}`);
+  }
+};
+
 export class FengShuiAnalyzer {
   constructor() {
-    // Danh sách Can và Chi
-    this.canList = ['Giáp', 'Ất', 'Bính', 'Đinh', 'Mậu', 'Kỷ', 'Canh', 'Tân', 'Nhâm', 'Quý'];
-    this.chiList = ['Tý', 'Sửu', 'Dần', 'Mão', 'Thìn', 'Tỵ', 'Ngọ', 'Mùi', 'Thân', 'Dậu', 'Tuất', 'Hợi'];
-
-    // Ngũ Hành nạp âm (dựa trên tổ hợp Can Chi)
-    this.napAmElements = {
-      'Giáp Tý': 'Kim', 'Ất Sửu': 'Kim', 'Bính Dần': 'Hỏa', 'Đinh Mão': 'Hỏa', 'Mậu Thìn': 'Mộc',
-      'Kỷ Tỵ': 'Mộc', 'Canh Ngọ': 'Thổ', 'Tân Mùi': 'Thổ', 'Nhâm Thân': 'Kim', 'Quý Dậu': 'Kim',
-      'Giáp Tuất': 'Hỏa', 'Ất Hợi': 'Hỏa', 'Bính Tý': 'Thủy', 'Đinh Sửu': 'Thủy', 'Mậu Dần': 'Thổ',
-      'Kỷ Mão': 'Thổ', 'Canh Thìn': 'Kim', 'Tân Tỵ': 'Kim', 'Nhâm Ngọ': 'Mộc', 'Quý Mùi': 'Mộc',
-      'Giáp Thân': 'Thủy', 'Ất Dậu': 'Thủy', 'Bính Tuất': 'Thổ', 'Đinh Hợi': 'Thổ', 'Mậu Tý': 'Hỏa',
-      'Kỷ Sửu': 'Hỏa', 'Canh Dần': 'Mộc', 'Tân Mão': 'Mộc', 'Nhâm Thìn': 'Thủy', 'Quý Tỵ': 'Thủy',
-      'Giáp Ngọ': 'Kim', 'Ất Mùi': 'Kim', 'Bính Thân': 'Hỏa', 'Đinh Dậu': 'Hỏa', 'Mậu Tuất': 'Mộc',
-      'Kỷ Hợi': 'Mộc', 'Canh Tý': 'Thổ', 'Tân Sửu': 'Thổ', 'Nhâm Dần': 'Kim', 'Quý Mão': 'Kim',
-      'Giáp Thìn': 'Hỏa', 'Ất Tỵ': 'Hỏa', 'Bính Ngọ': 'Thủy', 'Đinh Mùi': 'Thủy', 'Mậu Thân': 'Thổ',
-      'Kỷ Dậu': 'Thổ', 'Canh Tuất': 'Kim', 'Tân Hợi': 'Kim', 'Nhâm Tý': 'Mộc', 'Quý Sửu': 'Mộc',
-      'Giáp Dần': 'Thủy', 'Ất Mão': 'Thủy', 'Bính Thìn': 'Thổ', 'Đinh Tỵ': 'Thổ', 'Mậu Ngọ': 'Hỏa',
-      'Kỷ Mùi': 'Hỏa', 'Canh Thân': 'Mộc', 'Tân Dậu': 'Mộc', 'Nhâm Tuất': 'Thủy', 'Quý Hợi': 'Thủy'
-    };
-
-    // Ý nghĩa Ngũ Hành
-    this.elementMeanings = {
-      'Kim': {
-        desc: 'Kim tượng trưng cho kim loại, biểu thị sự cứng cáp, kiên định và sắc sảo. Người mệnh Kim thường có tư duy logic, khả năng phân tích tốt và tinh thần độc lập.',
-        positive: ['Tư duy sắc bén', 'Ý chí kiên định', 'Trung thành', 'Đáng tin cậy'],
-        negative: ['Cứng nhắc', 'Thích cạnh tranh', 'Ít biểu lộ cảm xúc'],
-        careers: ['Các ngành liên quan đến tài chính, kinh doanh, kỹ thuật như: ngân hàng, kế toán, kỹ sư, công nghệ thông tin.', 'Nghề đòi hỏi sự chính xác như luật sư, thẩm phán, hoặc các ngành chế tác', 'Các vị trí lãnh đạo, quản lý nhờ khả năng tổ chức']
-      },
-      'Mộc': {
-        desc: 'Mộc tượng trưng cho cây cối, biểu thị sự phát triển, lòng nhân ái, sáng tạo và linh hoạt. Người mệnh Mộc có khả năng thích nghi cao, năng động, giàu ý tưởng và thích khám phá.',
-        positive: ['Sáng tạo', 'Hòa đồng', 'Thích nghi cao', 'Linh hoạt', 'Cầu tiến'],
-        negative: ['Thiếu quyết đoán', 'Cảm xúc thất thường', 'Quá tham vọng'],
-        careers: ['Các ngành sáng tạo như thiết kế, kiến trúc, nghệ thuật, viết lách, truyền thông', 'Ngành liên quan đến giáo dục, nghiên cứu, hoặc nông nghiệp, lâm nghiệp', 'Các công việc liên quan đến phát triển cộng đồng, từ thiện']
-      },
-      'Thủy': {
-        desc: 'Mệnh Thủy tượng trưng cho nước, sự uyển chuyển, thông minh và khả năng thích nghi. Người mệnh Thủy thường sâu sắc, nhạy cảm và giỏi giao tiếp.',
-        positive: ['Thông minh', 'Linh hoạt', 'Giao tiếp tốt', 'Trực giác mạnh'],
-        negative: ['Thiếu kiên định', 'Hay lo lắng', 'Cuốn theo cảm xúc'],
-        careers: ['Các ngành liên quan đến giao tiếp, ngoại giao như quan hệ công chúng, ngoại giao, báo chí', 'Ngành liên quan đến nước như hàng hải, du lịch, vận tải biển', 'Các nghề sáng tạo như âm nhạc, hội họa, hoặc marketing']
-      },
-      'Hỏa': {
-        desc: 'Mệnh Hỏa tượng trưng cho lửa, biểu thị nhiệt huyết, đam mê và năng lượng tích cực. Người mệnh Hỏa thường sôi nổi, dám nghĩ dám làm và đầy nhiệt huyết.',
-        positive: ['Năng động', 'Cuốn hút', 'Tinh thần thép'],
-        negative: ['Nóng nảy', 'Thiếu kiên nhẫn', 'Tự cao'],
-        careers: ['Các ngành năng động như quảng cáo, marketing, truyền thông, tổ chức sự kiện', 'Ngành công nghiệp năng lượng, công nghệ, hoặc các nghề liên quan đến ánh sáng, nhiệt', 'Các nghề đòi hỏi sự dẫn dắt như diễn giả, huấn luyện viên']
-      },
-      'Thổ': {
-        desc: 'Mệnh Thổ tượng trưng cho đất, sự ổn định, nuôi dưỡng và đáng tin cậy. Người mệnh Thổ thường điềm tĩnh, trung thành và có trách nhiệm.',
-        positive: ['Đáng tin cậy', 'Trung thành', 'Ổn định', 'Thực tế'],
-        negative: ['Bảo thủ', 'Chậm thích nghi', 'Dễ bị lợi dụng'],
-        careers: ['Các ngành liên quan đến đất như bất động sản, xây dựng, nông nghiệp', 'Ngành cần sự ổn định như giáo viên, nhân sự, quản lý hành chính', 'Các nghề liên quan đến tư vấn, chăm sóc khách hàng, hoặc công việc từ thiện']
-      }
-    };
-
-    // Màu sắc theo Ngũ Hành
-    this.colorMapping = {
-      'Kim': { 
-        compatible: ['trắng', 'bạc', 'vàng kim'], 
-        beneficial: ['vàng đất', 'nâu đất'], // Thổ sinh Kim
-        avoid: ['đỏ', 'hồng', 'tím'] // Hỏa khắc Kim
-      },
-      'Mộc': { 
-        compatible: ['xanh lá', 'đen', 'xanh dương'], 
-        beneficial: ['đen', 'xanh dương'], // Thủy sinh Mộc
-        avoid: ['trắng', 'bạc', 'vàng kim'] // Kim khắc Mộc
-      },
-      'Thủy': { 
-        compatible: ['đen', 'xanh dương', 'trắng', 'bạc'], 
-        beneficial: ['trắng', 'bạc'], // Kim sinh Thủy
-        avoid: ['vàng đất', 'nâu đất'] // Thổ khắc Thủy
-      },
-      'Hỏa': { 
-        compatible: ['đỏ', 'hồng', 'tím', 'xanh lá'], 
-        beneficial: ['xanh lá', 'đỏ'], // Mộc sinh Hỏa
-        avoid: ['đen', 'xanh dương'] // Thủy khắc Hỏa
-      },
-      'Thổ': { 
-        compatible: ['vàng đất', 'nâu đất', 'đỏ', 'hồng'], 
-        beneficial: ['đỏ', 'hồng'], // Hỏa sinh Thổ
-        avoid: ['xanh lá', 'xanh ngọc'] // Mộc khắc Thổ
-      }
-    };
-
-    // Hướng tốt theo Ngũ Hành
-    this.directionMapping = {
-      'Kim': ['Tây', 'Tây Bắc'],
-      'Mộc': ['Đông', 'Đông Nam'],
-      'Thủy': ['Bắc'],
-      'Hỏa': ['Nam'],
-      'Thổ': ['Đông Bắc', 'Tây Nam']
-    };
-
-    // Số may mắn theo Ngũ Hành
-    this.luckyNumbers = {
-      'Kim': [7, 8],
-      'Mộc': [3, 4],
-      'Thủy': [1, 6],
-      'Hỏa': [2, 9],
-      'Thổ': [0, 5]
-    };
-
-    // Vật phẩm phong thủy may mắn theo Ngũ Hành
-    this.luckyItems = {
-      'Kim': ['Đồ kim loại', 'Đá thạch anh trắng', 'Gương'],
-      'Mộc': ['Cây xanh', 'Đồ gỗ', 'Tranh phong cảnh'],
-      'Thủy': ['Bể cá', 'Tranh nước', 'Đá thạch anh đen'],
-      'Hỏa': ['Đèn đỏ', 'Nến', 'Đá ruby', 'Thạch anh hồng'],
-      'Thổ': ['Đồ gốm, sứ', 'Đá thạch anh vàng', 'Tranh sơn thủy']
-    };
-
-    // Hệ thống sao
-    this.stars = {
-      chinhTinh: {
-        'Tử Vi': {
-          desc: 'Chủ về quyền lực tối cao, trí tuệ, sự lãnh đạo, quý nhân phù trợ',
-          good: ['Thông minh, sáng suốt', 'Có tài lãnh đạo', 'Được quý nhân giúp đỡ', 'Có uy quyền'],
-          bad: ['Dễ kiêu ngạo', 'Cô độc', 'Áp lực lớn']
-        },
-        'Thiên Cơ': {
-          desc: 'Chủ về mưu lược, trí tuệ, sự biến hóa, linh hoạt',
-          good: ['Thông minh, sáng tạo', 'Khéo léo, linh hoạt', 'Có khả năng thích nghi'],
-          bad: ['Dễ thay đổi', 'Thiếu kiên định', 'Hay lo xa']
-        },
-        'Thái Dương': {
-          desc: 'Chủ về quyền lực, danh vọng, sự nghiệp',
-          good: ['Sáng sủa, nhiệt huyết', 'Có tài lãnh đạo', 'Thành công trong sự nghiệp'],
-          bad: ['Kiêu ngạo', 'Nóng nảy', 'Độc đoán']
-        },
-        'Vũ Khúc': {
-          desc: 'Chủ về tài chính, nghị lực, sự kiên trì, tài sản',
-          good: ['Kiên trì, quyết đoán', 'Giỏi quản lý tài chính', 'Có ý chí mạnh mẽ'],
-          bad: ['Cứng nhắc', 'Bảo thủ', 'Dễ gặp khó khăn về tình cảm']
-        },
-        'Thiên Đồng': {
-          desc: 'Chủ về phúc đức, hòa nhã, nhân hậu, dễ thích nghi',
-          good: ['Nhân hậu, hòa đồng', 'Dễ thích nghi', 'Được nhiều người yêu mến'],
-          bad: ['Thiếu quyết đoán', 'Dễ bị ảnh hưởng', 'Hay thay đổi ý kiến']
-        },
-        'Liêm Trinh': {
-          desc: 'Chủ về chính trực, liêm khiết, thử thách, luật pháp',
-          good: ['Chính trực, liêm khiết', 'Có ý chí mạnh mẽ', 'Kiên định'],
-          bad: ['Dễ gặp thị phi', 'Cứng nhắc', 'Khó hòa nhập']
-        },
-        'Thiên Phủ': {
-          desc: 'Chủ về tài sản, kho tàng, sự bảo hộ, ổn định',
-          good: ['Giàu có, ổn định', 'Có khả năng tích lũy', 'Được bảo vệ'],
-          bad: ['Bảo thủ', 'Chậm thay đổi', 'Dễ bị lừa gạt']
-        },
-        'Thái Âm': {
-          desc: 'Chủ về tình cảm, gia đình, sự ổn định',
-          good: ['Nhạy cảm, tinh tế', 'Quan tâm gia đình', 'Có tài ngoại giao'],
-          bad: ['Dễ xúc động', 'Thiếu quyết đoán', 'Hay lo lắng']
-        },
-        'Tham Lang': {
-          desc: 'Chủ về ham muốn, nghệ thuật, giao tiếp, đào hoa',
-          good: ['Năng động, sáng tạo', 'Có tài nghệ thuật', 'Giao tiếp tốt'],
-          bad: ['Dễ sa ngã', 'Ham vui', 'Dễ bị cám dỗ']
-        },
-        'Cự Môn': {
-          desc: 'Chủ về khẩu thiệt, tranh luận, học vấn, thị phi',
-          good: ['Giỏi tranh luận', 'Có tài hùng biện', 'Thông minh'],
-          bad: ['Dễ gặp thị phi', 'Hay tranh cãi', 'Khó hòa hợp']
-        },
-        'Thiên Tướng': {
-          desc: 'Chủ về quyền uy, bảo vệ, giúp đỡ, công lý',
-          good: ['Chính trực, công bằng', 'Có uy tín', 'Giúp đỡ người khác'],
-          bad: ['Dễ bị lợi dụng', 'Cứng nhắc', 'Khó thay đổi']
-        },
-        'Thiên Lương': {
-          desc: 'Chủ về phúc đức, sự kéo dài, tính bền vững, gặp hung hóa cát',
-          good: ['Nhân hậu, từ bi', 'Xoay chuyển thời cục', 'Được nhiều người kính trọng'],
-          bad: ['Dễ bị lợi dụng', 'Quá tin người', 'Dễ gặp rắc rối']
-        },
-        'Thất Sát': {
-          desc: 'Chủ về quyền lực, quyết đoán, mạo hiểm, thay đổi',
-          good: ['Quyết đoán, mạnh mẽ', 'Dám nghĩ dám làm', 'Có tố chất lãnh đạo'],
-          bad: ['Nóng nảy', 'Dễ gặp nguy hiểm', 'Khó kiểm soát cảm xúc']
-        },
-        'Phá Quân': {
-          desc: 'Chủ về phá cách, đổi mới, cách mạng, biến động',
-          good: ['Sáng tạo, đổi mới', 'Dám thay đổi', 'Có ý chí mạnh mẽ'],
-          bad: ['Dễ gặp biến động', 'Thiếu ổn định', 'Dễ mất phương hướng']
-        },
-        'Mộc Đức': {
-          desc: 'Chủ về học vấn, trí tuệ, sự phát triển',
-          good: ['Thông minh, sáng tạo', 'Ham học hỏi', 'Có tài văn chương'],
-          bad: ['Thiếu thực tế', 'Hay mơ mộng', 'Khó tập trung']
-        },
-        'Thủy Đức': {
-          desc: 'Chủ về tài lộc, kinh doanh, sự linh hoạt',
-          good: ['Khéo léo, mềm dẻo', 'Có tài kinh doanh', 'Giao tiếp tốt'],
-          bad: ['Thiếu kiên định', 'Dễ thay đổi', 'Hay do dự']
-        },
-        'Kim Đức': {
-          desc: 'Chủ về công danh, địa vị, sự uy nghiêm',
-          good: ['Cương nghị, chính trực', 'Có uy tín', 'Đáng tin cậy'],
-          bad: ['Cứng nhắc', 'Thiếu linh hoạt', 'Khó gần']
-        },
-        'Hỏa Đức': {
-          desc: 'Chủ về nhiệt huyết, đam mê, sự năng động',
-          good: ['Nhiệt tình, năng động', 'Có sức hút', 'Dám nghĩ dám làm'],
-          bad: ['Nóng nảy', 'Thiếu kiên nhẫn', 'Dễ bốc đồng']
-        },
-        'Thổ Đức': {
-          desc: 'Chủ về ổn định, thực tế, sự vững chắc',
-          good: ['Ổn định, đáng tin', 'Thực tế, cẩn thận', 'Có trách nhiệm'],
-          bad: ['Bảo thủ', 'Chậm thích nghi', 'Thiếu sáng tạo']
-        }
-      },
-      phuTinh: {
-        'Thiên Đức': {
-          desc: 'Sao phúc đức, mang lại may mắn và cơ hội',
-          good: ['Gặp nhiều may mắn', 'Được quý nhân giúp đỡ', 'Có cơ hội tốt'],
-          bad: ['Dễ bỏ lỡ cơ hội', 'Thiếu quyết đoán khi cần']
-        },
-        'Nguyệt Đức': {
-          desc: 'Sao phúc đức, hóa giải tai ương, tăng vận may',
-          good: ['Dễ gặp may mắn', 'Được giúp đỡ khi khó khăn', 'Hóa giải vận xấu'],
-          bad: ['Dễ chủ quan', 'Không tận dụng hết cơ hội']
-        },
-        'Thiên Hỷ': {
-          desc: 'Sao vui vẻ, mang lại niềm vui và hạnh phúc',
-          good: ['Vui vẻ, lạc quan', 'Được yêu mến', 'Có duyên với người khác'],
-          bad: ['Dễ bị lừa gạt', 'Thiếu cảnh giác']
-        },
-        'Đào Hoa': {
-          desc: 'Sao đào hoa, chủ về tình cảm, nhân duyên, thu hút',
-          good: ['Dễ thu hút người khác', 'Có duyên trong giao tiếp', 'Tăng vận tình cảm'],
-          bad: ['Dễ vướng thị phi tình cảm', 'Dễ bị hiểu lầm']
-        },
-        'Hồng Loan': {
-          desc: 'Sao tình duyên, chủ về hôn nhân, tình cảm tốt đẹp',
-          good: ['Dễ gặp nhân duyên tốt', 'Tình cảm thuận lợi', 'Gia đình hòa thuận'],
-          bad: ['Dễ bị chi phối bởi tình cảm', 'Dễ cảm xúc thất thường']
-        },
-        'Thiên Mã': {
-          desc: 'Sao di chuyển, mang lại sự thay đổi và cơ hội',
-          good: ['Nhiều cơ hội đi xa', 'Dễ thích nghi', 'Có tài ngoại giao'],
-          bad: ['Khó ổn định', 'Hay thay đổi công việc']
-        },
-        'Lộc Tồn': {
-          desc: 'Sao tài lộc, chủ về tiền bạc, của cải, may mắn tài chính',
-          good: ['Dễ gặp vận may tài chính', 'Có lộc bất ngờ', 'Thu nhập tăng'],
-          bad: ['Dễ tiêu xài hoang phí', 'Dễ bị mất mát tài sản']
-        },
-        'Thiên Khốc': {
-          desc: 'Sao buồn bã, mang lại thử thách và bài học',
-          good: ['Rèn luyện tính kiên nhẫn', 'Trưởng thành qua khó khăn'],
-          bad: ['Dễ buồn bã', 'Gặp nhiều trở ngại']
-        },
-        'Thiên Hư': {
-          desc: 'Sao hư hao, mang lại sự mất mát và bài học',
-          good: ['Học cách tiết kiệm', 'Biết quý trọng những gì mình có'],
-          bad: ['Dễ hao tài', 'Gặp nhiều mất mát']
-        }
-      }
-    };
-
-    // Cung mệnh theo giờ sinh
-    this.hourPalace = {
-      'Tý': 'Cung Tý',
-      'Sửu': 'Cung Sửu',
-      'Dần': 'Cung Dần',
-      'Mão': 'Cung Mão',
-      'Thìn': 'Cung Thìn',
-      'Tỵ': 'Cung Tỵ',
-      'Ngọ': 'Cung Ngọ',
-      'Mùi': 'Cung Mùi',
-      'Thân': 'Cung Thân',
-      'Dậu': 'Cung Dậu',
-      'Tuất': 'Cung Tuất',
-      'Hợi': 'Cung Hợi'
-    };
+    this.lunar = new Lunar();
+    // Load data from JSON files
+    this.nguHanhData = loadJsonData('nguHanh.json');
+    this.thienCanData = loadJsonData('thienCan.json');
+    this.diaChiData = loadJsonData('diaChi.json');
+    this.napAmData = loadJsonData('napAm.json');
+    this.cungMenhData = loadJsonData('cungMenh.json');
   }
 
-  calculateCanChi(birthYear) {
-    // Năm Giáp Tý (1984) là điểm mốc
-    const startYear = 1984;
-    const offset = (birthYear - startYear) % 60;
-    const adjustedOffset = offset < 0 ? (offset + 60) % 60 : offset;
-
-    const canIndex = adjustedOffset % 10;
-    const chiIndex = adjustedOffset % 12;
-
-    return {
-      can: this.canList[canIndex],
-      chi: this.chiList[chiIndex]
-    };
+  /**
+   * Converts a solar date to a lunar date object.
+   * @param {number} year - Solar year.
+   * @param {number} month - Solar month (1-12).
+   * @param {number} day - Solar day.
+   * @param {number} hour - Solar hour (0-23).
+   * @returns {object} Lunar date information.
+   */
+  convertSolarToLunar(year, month, day, hour) {
+    // Pad month and day with a leading zero if they are single-digit
+    const paddedMonth = month.toString().padStart(2, '0');
+    const paddedDay = day.toString().padStart(2, '0');
+    const formattedDate = `${year}-${paddedMonth}-${paddedDay}`;
+    console.log(`Attempting to convert solar date: ${formattedDate}, hour: ${hour}`);
+    const lunarDate = this.lunar.getBlockLunarDate(formattedDate, hour);
+    console.log('Lunar conversion result:', lunarDate);
+    return lunarDate;
   }
 
-  calculateElement(birthYear) {
-    const canChi = this.calculateCanChi(birthYear);
-    const canChiKey = `${canChi.can} ${canChi.chi}`;
-    return this.napAmElements[canChiKey] || 'Không xác định';
+  /**
+   * Gets the Nạp Âm for a given Can and Chi of the year.
+   * @param {string} canNam - Can of the year.
+   * @param {string} chiNam - Chi of the year.
+   * @returns {string} The Nạp Âm.
+   */
+  getNapAm(canNam, chiNam) {
+    const key = `${canNam} ${chiNam}`;
+    return this.napAmData[key] || 'Không xác định';
   }
 
-  calculateHourPalace(birthHour) {
-    const hourIndex = Math.floor(birthHour / 2);
-    return this.chiList[hourIndex];
-  }
-
-  calculateStars(birthHour, birthDay) {
-    try {
-      // Đảm bảo birthHour và birthDay là số
-      birthHour = parseInt(birthHour) || 0;
-      birthDay = parseInt(birthDay) || 1;
-
-      const hourPalace = this.calculateHourPalace(birthHour);
-      const dayMod = birthDay % 10;
-      const hourMod = birthHour % 12;
-
-      // Tính sao chính tinh
-      const chinhTinh = [];
-      const starKeys = Object.keys(this.stars.chinhTinh);
-      if (starKeys.length > 0) {
-        const mainStarIndex = (dayMod + hourMod) % starKeys.length;
-        const mainStar = starKeys[mainStarIndex];
-        const mainStarInfo = this.stars.chinhTinh[mainStar];
-        
-        if (mainStarInfo) {
-          chinhTinh.push({
-            name: mainStar,
-            desc: mainStarInfo.desc || 'Không có mô tả',
-            good: mainStarInfo.good || [],
-            bad: mainStarInfo.bad || []
-          });
-        }
-      }
-
-      // Tính sao phụ tinh
-      const phuTinh = [];
-      const phuStarKeys = Object.keys(this.stars.phuTinh);
-      if (phuStarKeys.length > 0) {
-        const phuStarIndex = (dayMod * 2 + hourMod) % phuStarKeys.length;
-        const phuStar = phuStarKeys[phuStarIndex];
-        const phuStarInfo = this.stars.phuTinh[phuStar];
-        
-        if (phuStarInfo) {
-          phuTinh.push({
-            name: phuStar,
-            desc: phuStarInfo.desc || 'Không có mô tả',
-            good: phuStarInfo.good || [],
-            bad: phuStarInfo.bad || []
-          });
-        }
-      }
-
-      // Đảm bảo hourPalace có giá trị
-      const hourPalaceValue = this.hourPalace[hourPalace] || 'Không xác định';
-
-      // console.log('Star calculation result:', {
-      //   chinhTinh,
-      //   phuTinh,
-      //   hourPalace: hourPalaceValue
-      // });
-
-      return {
-        chinhTinh,
-        phuTinh,
-        hourPalace: hourPalaceValue
-      };
-    } catch (error) {
-      console.error('Error calculating stars:', error);
-      return {
-        chinhTinh: [],
-        phuTinh: [],
-        hourPalace: 'Không xác định'
-      };
-    }
-  }
-
-  analyzeByBirthYear(birthYear, birthMonth = 1, birthDay = 1, birthHour = 0, birthMinute = 0, gender, preferences, name) {
-    const element = this.calculateElement(birthYear);
-    const colorInfo = this.colorMapping[element] || {};
-    const luckyDirections = this.directionMapping[element] || [];
-    const luckyNumbers = this.luckyNumbers[element] || [];
-    const canChi = this.calculateCanChi(birthYear);
-    const stars = this.calculateStars(birthHour, birthDay);
-
-    // Lấy nạp âm (ví dụ: Dương Liễu Mộc, Kiếm Phong Kim...) nếu có
-    const canChiKey = `${canChi.can} ${canChi.chi}`;
-    // Danh sách nạp âm đầy đủ
-    const napAmFullMapping = {
-      'Giáp Tý': 'Hải Trung Kim', 'Ất Sửu': 'Hải Trung Kim',
-      'Bính Dần': 'Lư Trung Hỏa', 'Đinh Mão': 'Lư Trung Hỏa',
-      'Mậu Thìn': 'Đại Lâm Mộc', 'Kỷ Tỵ': 'Đại Lâm Mộc',
-      'Canh Ngọ': 'Lộ Bàng Thổ', 'Tân Mùi': 'Lộ Bàng Thổ',
-      'Nhâm Thân': 'Kiếm Phong Kim', 'Quý Dậu': 'Kiếm Phong Kim',
-      'Giáp Tuất': 'Sơn Đầu Hỏa', 'Ất Hợi': 'Sơn Đầu Hỏa',
-      'Bính Tý': 'Giản Hạ Thủy', 'Đinh Sửu': 'Giản Hạ Thủy',
-      'Mậu Dần': 'Thành Đầu Thổ', 'Kỷ Mão': 'Thành Đầu Thổ',
-      'Canh Thìn': 'Bạch Lạp Kim', 'Tân Tỵ': 'Bạch Lạp Kim',
-      'Nhâm Ngọ': 'Dương Liễu Mộc', 'Quý Mùi': 'Dương Liễu Mộc',
-      'Giáp Thân': 'Tuyền Trung Thủy', 'Ất Dậu': 'Tuyền Trung Thủy',
-      'Bính Tuất': 'Ốc Thượng Thổ', 'Đinh Hợi': 'Ốc Thượng Thổ',
-      'Mậu Tý': 'Tích Lịch Hỏa', 'Kỷ Sửu': 'Tích Lịch Hỏa',
-      'Canh Dần': 'Tùng Bách Mộc', 'Tân Mão': 'Tùng Bách Mộc',
-      'Nhâm Thìn': 'Trường Lưu Thủy', 'Quý Tỵ': 'Trường Lưu Thủy',
-      'Giáp Ngọ': 'Sa Trung Kim', 'Ất Mùi': 'Sa Trung Kim',
-      'Bính Thân': 'Sơn Hạ Hỏa', 'Đinh Dậu': 'Sơn Hạ Hỏa',
-      'Mậu Tuất': 'Bình Địa Mộc', 'Kỷ Hợi': 'Bình Địa Mộc',
-      'Canh Tý': 'Bích Thượng Thổ', 'Tân Sửu': 'Bích Thượng Thổ',
-      'Nhâm Dần': 'Kim Bạch Kim', 'Quý Mão': 'Kim Bạch Kim',
-      'Giáp Thìn': 'Phú Đăng Hỏa', 'Ất Tỵ': 'Phú Đăng Hỏa',
-      'Bính Ngọ': 'Thiên Hà Thủy', 'Đinh Mùi': 'Thiên Hà Thủy',
-      'Mậu Thân': 'Đại Dịch Thổ', 'Kỷ Dậu': 'Đại Dịch Thổ',
-      'Canh Tuất': 'Thoa Xuyến Kim', 'Tân Hợi': 'Thoa Xuyến Kim',
-      'Nhâm Tý': 'Tang Đố Mộc', 'Quý Sửu': 'Tang Đố Mộc',
-      'Giáp Dần': 'Đại Khê Thủy', 'Ất Mão': 'Đại Khê Thủy',
-      'Bính Thìn': 'Sa Trung Thổ', 'Đinh Tỵ': 'Sa Trung Thổ',
-      'Mậu Ngọ': 'Thiên Thượng Hỏa', 'Kỷ Mùi': 'Thiên Thượng Hỏa',
-      'Canh Thân': 'Thạch Lựu Mộc', 'Tân Dậu': 'Thạch Lựu Mộc',
-      'Nhâm Tuất': 'Đại Hải Thủy', 'Quý Hợi': 'Đại Hải Thủy',
-    };
-    const napAmFull = napAmFullMapping[canChiKey] || 'Không xác định';
-    // Đảm bảo birthDay và birthMonth luôn là số hợp lệ
-    birthDay = parseInt(birthDay) || 1;
-    birthMonth = parseInt(birthMonth) || 1;
-
-    // Phân tích ngày sinh
-    let birthDayDetail = '';
-    if ([1, 11, 21, 31].includes(birthDay)) birthDayDetail = 'Bạn là người mạnh mẽ, quyết đoán, có tố chất lãnh đạo.';
-    else if ([2, 12, 22].includes(birthDay)) birthDayDetail = 'Bạn sống tình cảm, biết quan tâm, dễ tạo thiện cảm.';
-    else if ([5, 15, 25].includes(birthDay)) birthDayDetail = 'Bạn có tư duy logic, thực tế, đáng tin cậy.';
-    else if ([7, 17, 27].includes(birthDay)) birthDayDetail = 'Bạn sáng tạo, thích khám phá, có cá tính riêng.';
-    else birthDayDetail = 'Bạn có cá tính cân bằng, hài hòa.';
-
-    // Phân tích tháng sinh
-    let birthMonthDetail = '';
-    if ([1, 2].includes(birthMonth)) birthMonthDetail = 'Sinh vào mùa Xuân, vận khí tươi mới, hợp với mệnh Mộc.';
-    else if ([3, 4, 5].includes(birthMonth)) birthMonthDetail = 'Sinh vào mùa Hạ, năng lượng dồi dào, hợp mệnh Hỏa.';
-    else if ([6, 7, 8].includes(birthMonth)) birthMonthDetail = 'Sinh vào mùa Thu, ổn định, hợp mệnh Kim.';
-    else if ([9, 10, 11].includes(birthMonth)) birthMonthDetail = 'Sinh vào mùa Đông, sâu sắc, hợp mệnh Thủy.';
-    else if (birthMonth === 12) birthMonthDetail = 'Sinh cuối năm, có ý chí vươn lên, hợp mệnh Thổ.';
-    else birthMonthDetail = '';
-
-    // Xử lý thông tin sao
-    const starAnalysis = {
-      chinhTinh: stars.chinhTinh.map(star => ({
-        name: star.name,
-        desc: star.desc,
-        good: star.good,
-        bad: star.bad
-      })),
-      phuTinh: stars.phuTinh.map(star => ({
-        name: star.name,
-        desc: star.desc,
-        good: star.good,
-        bad: star.bad
-      })),
-      hourPalace: stars.hourPalace
-    };
-
-    return {
-      birthYear,
-      element,
-      elementDetail: this.elementMeanings[element] || {},
-      canChi: {
-        ...canChi,
-        full: `${canChi.can} ${canChi.chi}`,
-        description: `${canChi.can} ${canChi.chi} (${birthYear})`
-      },
-      napAmFull,
-      compatibleColors: colorInfo.compatible || [],
-      beneficialColors: colorInfo.beneficial || [],
-      avoidColors: colorInfo.avoid || [],
-      luckyDirections,
-      luckyNumbers,
-      luckyItems: this.luckyItems[element] || [],
-      birthDayDetail,
-      birthMonthDetail,
-      stars: starAnalysis,
-      analysis: this.generateAnalysisText(element, birthYear, gender, preferences, canChi, starAnalysis)
-    };
-  }
-
-  generateAnalysisText(element, birthYear, gender, preferences, canChi, stars) {
-    let text = this.generateBasicAnalysis(element, birthYear, gender, preferences, canChi);
+  /**
+   * Gets the Cung Mệnh based on the lunar birth year and gender.
+   * @param {number} lunarYear - Lunar birth year.
+   * @param {string} gender - 'male' or 'female'.
+   * @returns {string} The Cung Mệnh.
+   */
+  getCungMenh(lunarYear, gender) {
+    const yearDigits = lunarYear.toString().split('').map(Number);
+    const sum = yearDigits.reduce((a, b) => a + b, 0);
+    const remainder = sum % 9 === 0 ? 9 : sum % 9;
     
-    // Thêm phần phân tích sao
-    text += `\n\n🌟 PHÂN TÍCH SAO\n`;
-    if (stars && stars.hourPalace) {
-      text += `Cung giờ: ${stars.hourPalace}\n\n`;
-    }
-    
-    // Phân tích chính tinh
-    if (stars && stars.chinhTinh && stars.chinhTinh.length > 0) {
-      text += `Chính tinh:\n`;
-      stars.chinhTinh.forEach(star => {
-        if (star && star.name) {
-          text += `- ${star.name}: ${star.desc || 'Không có mô tả'}\n`;
-          if (star.good && star.good.length > 0) {
-            text += `  Điểm mạnh:\n`;
-            star.good.forEach(point => text += `  + ${point}\n`);
-          }
-          if (star.bad && star.bad.length > 0) {
-            text += `  Điểm cần lưu ý:\n`;
-            star.bad.forEach(point => text += `  - ${point}\n`);
-          }
-        }
-      });
-    }
-
-    // Phân tích phụ tinh
-    if (stars && stars.phuTinh && stars.phuTinh.length > 0) {
-      text += `\nPhụ tinh:\n`;
-      stars.phuTinh.forEach(star => {
-        if (star && star.name) {
-          text += `- ${star.name}: ${star.desc || 'Không có mô tả'}\n`;
-          if (star.good && star.good.length > 0) {
-            text += `  Ảnh hưởng tích cực:\n`;
-            star.good.forEach(point => text += `  + ${point}\n`);
-          }
-          if (star.bad && star.bad.length > 0) {
-            text += `  Ảnh hưởng cần lưu ý:\n`;
-            star.bad.forEach(point => text += `  - ${point}\n`);
-          }
-        }
-      });
-    }
-
-    return text;
+    const genderKey = gender === 'male' ? 'Nam' : 'Nữ';
+    return this.cungMenhData[genderKey][remainder] || 'Không xác định';
   }
 
-  generateBasicAnalysis(element, birthYear, gender, preferences, canChi) {
-    const elementInfo = this.elementMeanings[element] || {};
+  /**
+   * Gets the Can Chi of the hour based on birth hour and day's Can.
+   * @param {number} birthHour - Solar birth hour (0-23).
+   * @param {string} canNgay - Can of the day.
+   * @returns {object} An object containing can and chi of the hour.
+   */
+  getCanChiOfHour(birthHour, canNgay) {
+    const chiMap = {
+      23: 'Tý', 0: 'Tý',
+      1: 'Sửu', 2: 'Sửu',
+      3: 'Dần', 4: 'Dần',
+      5: 'Mão', 6: 'Mão',
+      7: 'Thìn', 8: 'Thìn',
+      9: 'Tỵ', 10: 'Tỵ',
+      11: 'Ngọ', 12: 'Ngọ',
+      13: 'Mùi', 14: 'Mùi',
+      15: 'Thân', 16: 'Thân',
+      17: 'Dậu', 18: 'Dậu',
+      19: 'Tuất', 20: 'Tuất',
+      21: 'Hợi', 22: 'Hợi',
+    };
 
-    let text = `🌟 THÔNG TIN TỔNG QUAN\n`;
-    text += `Bạn sinh năm ${birthYear}, tuổi ${canChi.chi}\n`;
-    text += `Năm sinh: ${canChi.can} ${canChi.chi}\n`;
-    text += `Mệnh: ${element}\n\n`;
-    
-    text += `🎭 TÍNH CÁCH VÀ ĐẶC ĐIỂM\n`;
-    text += `${elementInfo.desc || 'Không có thông tin mô tả.'}\n\n`;
-    
-    // text += `Điểm mạnh:\n`;
-    // (elementInfo.positive || []).forEach(point => text += `- ${point}\n`);
-    // text += `\nĐiểm cần khắc phục:\n`;
-    // (elementInfo.negative || []).forEach(point => text += `- ${point}\n`);
-    
-    // text += `\nNgành nghề phù hợp:\n`;
-    // (elementInfo.careers || []).forEach(career => text += `- ${career}\n`);
+    const chiGio = chiMap[birthHour];
 
-    if (gender) {
-      text += gender === 'male'
-        ? `Là nam mệnh ${element}, bạn nên phát huy khả năng lãnh đạo và sự quyết đoán.\n\n`
-        : `Là nữ mệnh ${element}, bạn nên phát triển sự tinh tế và khả năng lắng nghe.\n\n`;
+    const canHourMap = {
+      'Giáp': {
+        'Tý': 'Giáp', 'Sửu': 'Ất', 'Dần': 'Bính', 'Mão': 'Đinh', 'Thìn': 'Mậu', 'Tỵ': 'Kỷ',
+        'Ngọ': 'Canh', 'Mùi': 'Tân', 'Thân': 'Nhâm', 'Dậu': 'Quý', 'Tuất': 'Giáp', 'Hợi': 'Ất'
+      },
+      'Kỷ': {
+        'Tý': 'Giáp', 'Sửu': 'Ất', 'Dần': 'Bính', 'Mão': 'Đinh', 'Thìn': 'Mậu', 'Tỵ': 'Kỷ',
+        'Ngọ': 'Canh', 'Mùi': 'Tân', 'Thân': 'Nhâm', 'Dậu': 'Quý', 'Tuất': 'Giáp', 'Hợi': 'Ất'
+      },
+      'Ất': {
+        'Tý': 'Bính', 'Sửu': 'Đinh', 'Dần': 'Mậu', 'Mão': 'Kỷ', 'Thìn': 'Canh', 'Tỵ': 'Tân',
+        'Ngọ': 'Nhâm', 'Mùi': 'Quý', 'Thân': 'Giáp', 'Dậu': 'Ất', 'Tuất': 'Bính', 'Hợi': 'Đinh'
+      },
+      'Canh': {
+        'Tý': 'Bính', 'Sửu': 'Đinh', 'Dần': 'Mậu', 'Mão': 'Kỷ', 'Thìn': 'Canh', 'Tỵ': 'Tân',
+        'Ngọ': 'Nhâm', 'Mùi': 'Quý', 'Thân': 'Giáp', 'Dậu': 'Ất', 'Tuất': 'Bính', 'Hợi': 'Đinh'
+      },
+      'Bính': {
+        'Tý': 'Mậu', 'Sửu': 'Kỷ', 'Dần': 'Canh', 'Mão': 'Tân', 'Thìn': 'Nhâm', 'Tỵ': 'Quý',
+        'Ngọ': 'Giáp', 'Mùi': 'Ất', 'Thân': 'Bính', 'Dậu': 'Đinh', 'Tuất': 'Mậu', 'Hợi': 'Kỷ'
+      },
+      'Tân': {
+        'Tý': 'Mậu', 'Sửu': 'Kỷ', 'Dần': 'Canh', 'Mão': 'Tân', 'Thìn': 'Nhâm', 'Tỵ': 'Quý',
+        'Ngọ': 'Giáp', 'Mùi': 'Ất', 'Thân': 'Bính', 'Dậu': 'Đinh', 'Tuất': 'Mậu', 'Hợi': 'Kỷ'
+      },
+      'Đinh': {
+        'Tý': 'Canh', 'Sửu': 'Tân', 'Dần': 'Nhâm', 'Mão': 'Quý', 'Thìn': 'Giáp', 'Tỵ': 'Ất',
+        'Ngọ': 'Bính', 'Mùi': 'Đinh', 'Thân': 'Mậu', 'Dậu': 'Kỷ', 'Tuất': 'Canh', 'Hợi': 'Tân'
+      },
+      'Nhâm': {
+        'Tý': 'Canh', 'Sửu': 'Tân', 'Dần': 'Nhâm', 'Mão': 'Quý', 'Thìn': 'Giáp', 'Tỵ': 'Ất',
+        'Ngọ': 'Bính', 'Mùi': 'Đinh', 'Thân': 'Mậu', 'Dậu': 'Kỷ', 'Tuất': 'Canh', 'Hợi': 'Tân'
+      },
+      'Mậu': {
+        'Tý': 'Nhâm', 'Sửu': 'Quý', 'Dần': 'Giáp', 'Mão': 'Ất', 'Thìn': 'Bính', 'Tỵ': 'Đinh',
+        'Ngọ': 'Mậu', 'Mùi': 'Kỷ', 'Thân': 'Canh', 'Dậu': 'Tân', 'Tuất': 'Nhâm', 'Hợi': 'Quý'
+      },
+      'Quý': {
+        'Tý': 'Nhâm', 'Sửu': 'Quý', 'Dần': 'Giáp', 'Mão': 'Ất', 'Thìn': 'Bính', 'Tỵ': 'Đinh',
+        'Ngọ': 'Mậu', 'Mùi': 'Kỷ', 'Thân': 'Canh', 'Dậu': 'Tân', 'Tuất': 'Nhâm', 'Hợi': 'Quý'
+      },
+    };
+
+    const canGio = canHourMap[canNgay] ? canHourMap[canNgay][chiGio] : 'Không xác định';
+
+    return { can: canGio, chi: chiGio };
+  }
+
+  /**
+   * Analyzes user's birth information.
+   * @param {object} userInfo - User's information.
+   * @returns {object} The analysis result.
+   */
+  analyze(userInfo) {
+    const { birthYear, birthMonth, birthDay, birthHour, gender } = userInfo;
+
+    // 1. Convert Solar to Lunar
+    const lunarDate = this.convertSolarToLunar(birthYear, birthMonth, birthDay, birthHour);
+
+    // Guard clause to check for invalid date conversion
+    if (!lunarDate || !lunarDate.lunarYear) {
+      throw new Error("Ngày tháng năm sinh không hợp lệ. Vui lòng kiểm tra lại.");
     }
 
-    if (preferences?.trim()) {
-      text += `🎯 Gợi ý theo sở thích:\n- Sử dụng màu sắc hợp mệnh (${(this.colorMapping[element]?.compatible || []).join(', ')}) và màu tương sinh (${(this.colorMapping[element]?.beneficial || []).join(', ')}) để tăng tài lộc.\n- Bố trí nhà cửa hoặc bàn làm việc theo hướng tốt (${luckyDirections.join(', ')}).\n- Tận dụng số may mắn (${luckyNumbers.join(', ')}) khi chọn ngày, số điện thoại, biển số, v.v.\n\n`;
-    }
+    // 2. Get Can Chi for year, month, day, hour
+    const canChiNam = lunarDate.lunarYearStr.split(' ')[0];
+    const chiNam = lunarDate.lunarYearStr.split(' ')[1];
+    const canChiThang = lunarDate.lunarMonthStr.split(' ')[0];
+    const chiThang = lunarDate.lunarMonthStr.split(' ')[1];
+    const canChiNgay = lunarDate.lunarDateStr.split(' ')[0];
+    const chiNgay = lunarDate.lunarDateStr.split(' ')[1];
 
-    // Bổ sung tri thức nâng cao, không trùng các mục trên
-    text += `🔮 KIẾN THỨC PHONG THỦY & PHÁT TRIỂN BẢN THÂN\n`;
-    switch (element) {
-      case 'Kim':
-        text += `- Người mệnh Kim nên sử dụng các vật phẩm phong thủy bằng kim loại như vòng bạc, chuông gió kim loại để tăng cường năng lượng tích cực.\n`;
-        text += `- Nên tránh các nơi ẩm thấp, tối tăm, môi trường thiếu ánh sáng.\n`;
-        text += `- Khi gặp khó khăn, hãy chủ động kết nối với những người mệnh Thổ hoặc Thủy để nhận được sự hỗ trợ tốt hơn.\n`;
-        text += `- Về sức khỏe: nên chú ý các bệnh về phổi, hô hấp, da liễu.\n`;
-        text += `- Trong quan hệ, hợp với người mệnh Thổ, Thủy; nên kiềm chế tính cứng nhắc khi tranh luận.\n`;
-        text += `- Vật hộ mệnh: vòng bạc, đá thạch anh trắng, mã não trắng.\n`;
-        break;
-      case 'Mộc':
-        text += `- Người mệnh Mộc nên trồng cây xanh trong nhà, bàn làm việc để tăng may mắn.\n`;
-        text += `- Nên tránh dùng quá nhiều đồ kim loại hoặc ở môi trường khô nóng.\n`;
-        text += `- Khi gặp áp lực, hãy tìm đến thiên nhiên hoặc các hoạt động ngoài trời để cân bằng năng lượng.\n`;
-        text += `- Về sức khỏe: chú ý gan, mật, hệ tiêu hóa.\n`;
-        text += `- Trong quan hệ, hợp với người mệnh Thủy, Hỏa; nên học cách kiên định hơn khi ra quyết định.\n`;
-        text += `- Vật hộ mệnh: vòng gỗ, đá cẩm thạch xanh, cây phong thủy nhỏ.\n`;
-        break;
-      case 'Thủy':
-        text += `- Người mệnh Thủy nên đặt bể cá, tranh nước, hoặc sử dụng các vật phẩm hình sóng nước để tăng cường tài lộc.\n`;
-        text += `- Nên tránh các vật sắc nhọn, hình tam giác, màu nóng.\n`;
-        text += `- Khi cảm thấy mất cân bằng, hãy nghe nhạc nhẹ hoặc thiền bên nước để lấy lại năng lượng.\n`;
-        text += `- Về sức khỏe: chú ý thận, bàng quang, hệ tiết niệu.\n`;
-        text += `- Trong quan hệ, hợp với người mệnh Kim, Mộc; nên rèn luyện sự kiên định và ổn định cảm xúc.\n`;
-        text += `- Vật hộ mệnh: đá aquamarine, vòng đá xanh biển, chuông gió thủy tinh.\n`;
-        break;
-      case 'Hỏa':
-        text += `- Người mệnh Hỏa nên sử dụng nến thơm, đèn đá muối, hoặc các vật phẩm màu đỏ, cam để tăng động lực.\n`;
-        text += `- Nên tránh các vật phẩm màu đen, xanh nước biển, không gian quá lạnh lẽo.\n`;
-        text += `- Khi căng thẳng, hãy vận động thể thao, yoga hoặc các hoạt động sáng tạo để giải tỏa năng lượng dư thừa.\n`;
-        text += `- Về sức khỏe: chú ý tim mạch, huyết áp, mắt.\n`;
-        text += `- Trong quan hệ, hợp với người mệnh Mộc, Thổ; nên kiểm soát cảm xúc nóng vội khi giao tiếp.\n`;
-        text += `- Vật hộ mệnh: đá ruby, thạch anh hồng, vòng tay đỏ.\n`;
-        break;
-      case 'Thổ':
-        text += `- Người mệnh Thổ nên sử dụng các vật phẩm bằng gốm sứ, đá tự nhiên để ổn định năng lượng.\n`;
-        text += `- Nên tránh dùng quá nhiều đồ gỗ hoặc cây xanh lớn trong nhà.\n`;
-        text += `- Khi cảm thấy bất an, hãy thiền hoặc đi bộ ngoài trời, tiếp xúc với đất cát để tăng sự vững vàng.\n`;
-        text += `- Về sức khỏe: chú ý dạ dày, tiêu hóa, xương khớp.\n`;
-        text += `- Trong quan hệ, hợp với người mệnh Hỏa, Kim; nên linh hoạt hơn trong tư duy để tránh bảo thủ.\n`;
-        text += `- Vật hộ mệnh: đá mắt hổ, thạch anh vàng, tượng đất nung nhỏ.\n`;
-        break;
-      default:
-        text += `- Hãy tìm hiểu thêm về phong thủy và áp dụng các mẹo nhỏ vào đời sống để tăng cường vận khí cá nhân.\n`;
-        break;
-    }
-    text += `\n💡 MẸO PHÁT TRIỂN BẢN THÂN\n- Đặt mục tiêu nhỏ mỗi ngày để duy trì động lực.\n- Chọn bạn đời hợp mệnh để gia tăng hòa hợp và may mắn.\n- Thường xuyên đổi mới không gian sống, làm việc để tạo cảm hứng.\n- Học cách cân bằng giữa công việc và nghỉ ngơi.\n- Đọc sách về phát triển bản thân, phong thủy để mở rộng tư duy.\n- Tận dụng các con số, màu sắc, vật phẩm phong thủy phù hợp để hỗ trợ vận khí.\n`;
+    const { can: canChiGio, chi: chiGio } = this.getCanChiOfHour(birthHour, canChiNgay);
 
-    return text;
+    // 3. Determine Mệnh (Ngũ Hành Nạp Âm)
+    const napAm = this.getNapAm(canChiNam, chiNam);
+    const menh = Object.keys(this.nguHanhData).find(key => napAm.includes(key)) || 'Không xác định';
+    const menhInfo = this.nguHanhData[menh];
+
+    // 4. Determine Cung Mệnh
+    const cungMenh = this.getCungMenh(lunarDate.lunarYear, gender);
+
+    // 5. Build the result object
+    const result = {
+      solarDate: `${birthDay}/${birthMonth}/${birthYear}`,
+      lunarDate: `${lunarDate.lunarDate}/${lunarDate.lunarMonth}/${lunarDate.lunarYear}`,
+      tuTru: {
+        nam: { can: canChiNam, chi: chiNam },
+        thang: { can: canChiThang, chi: chiThang },
+        ngay: { can: canChiNgay, chi: chiNgay },
+        gio: { can: canChiGio, chi: chiGio },
+      },
+      menh: {
+        napAm: napAm,
+        nguHanh: menh,
+        ...menhInfo,
+      },
+      cungMenh: cungMenh,
+    };
+
+    return result;
   }
 }
+
+export default FengShuiAnalyzer;

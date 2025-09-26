@@ -242,4 +242,68 @@ const resendVerification = async (req, res) => {
     }
 }
 
-export { loginUser, registerUser, verifyEmailToken };
+// Facebook Login
+const facebookLogin = async (req, res) => {
+    const { facebookId, name, email, picture } = req.body;
+    
+    try {
+        // Tìm user với Facebook ID
+        let user = await userModel.findOne({ facebookId });
+        
+        if (user) {
+            // User đã tồn tại với Facebook ID
+            const token = createToken(user._id);
+            return res.status(200).json({ 
+                success: true, 
+                token, 
+                userName: user.name 
+            });
+        }
+        
+        // Kiểm tra xem email đã được đăng ký bằng phương thức khác chưa
+        if (email) {
+            const existingUser = await userModel.findOne({ email });
+            if (existingUser && !existingUser.facebookId) {
+                // Liên kết tài khoản Facebook với tài khoản hiện có
+                existingUser.facebookId = facebookId;
+                existingUser.picture = picture;
+                await existingUser.save();
+                
+                const token = createToken(existingUser._id);
+                return res.status(200).json({ 
+                    success: true, 
+                    token, 
+                    userName: existingUser.name 
+                });
+            }
+        }
+        
+        // Tạo tài khoản mới từ Facebook
+        const newUser = new userModel({
+            name,
+            email: email || `facebook_${facebookId}@placeholder.com`,
+            facebookId,
+            picture,
+            isVerified: true, // Facebook accounts are automatically verified
+            password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10) // Random password
+        });
+        
+        const savedUser = await newUser.save();
+        const token = createToken(savedUser._id);
+        
+        res.status(201).json({ 
+            success: true, 
+            token, 
+            userName: savedUser.name 
+        });
+        
+    } catch (error) {
+        console.error("Facebook login error:", error);
+        res.status(500).json({ 
+            success: false, 
+            message: "Server error during Facebook login" 
+        });
+    }
+};
+
+export { loginUser, registerUser, verifyEmailToken, facebookLogin };
