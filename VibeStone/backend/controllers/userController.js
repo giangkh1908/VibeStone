@@ -244,50 +244,99 @@ const resendVerification = async (req, res) => {
 
 // Facebook Business Login
 const facebookLogin = async (req, res) => {
+    console.log("🔵 ==> Facebook Login Request Started");
+    console.log("🔵 Request Body:", JSON.stringify(req.body, null, 2));
+    
     try {
         const { facebookId, name, email, accessToken } = req.body;
         
-        if (!facebookId || !accessToken) {
-            return res.json({ success: false, message: "Missing Facebook data" });
+        // Validate input
+        if (!facebookId) {
+            console.log("❌ Missing facebookId");
+            return res.json({ success: false, message: "Missing Facebook ID" });
         }
         
-        // Verify Facebook token với Facebook Graph API
-        const fbVerifyResponse = await fetch(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,email,name`);
+        if (!accessToken) {
+            console.log("❌ Missing accessToken");
+            return res.json({ success: false, message: "Missing access token" });
+        }
+        
+        console.log("🔵 Verifying Facebook token...");
+        
+        // Verify Facebook token
+        const fbVerifyUrl = `https://graph.facebook.com/me?access_token=${accessToken}&fields=id,email,name`;
+        console.log("🔵 Facebook verify URL:", fbVerifyUrl);
+        
+        const fbVerifyResponse = await fetch(fbVerifyUrl);
         const fbData = await fbVerifyResponse.json();
         
-        if (fbData.error || fbData.id !== facebookId) {
-            return res.json({ success: false, message: "Invalid Facebook token" });
+        console.log("🔵 Facebook verification response:", JSON.stringify(fbData, null, 2));
+        
+        if (fbData.error) {
+            console.log("❌ Facebook API Error:", fbData.error);
+            return res.json({ 
+                success: false, 
+                message: `Facebook API Error: ${fbData.error.message}` 
+            });
         }
         
-        // Kiểm tra user đã tồn tại chưa
+        if (fbData.id !== facebookId) {
+            console.log("❌ Facebook ID mismatch:", { expected: facebookId, received: fbData.id });
+            return res.json({ success: false, message: "Facebook ID mismatch" });
+        }
+        
+        console.log("✅ Facebook token verified successfully");
+        console.log("🔵 Searching for existing user...");
+        
+        // Check if user exists
         let user = await userModel.findOne({ 
             $or: [
-                { email: email },
+                { email: email || fbData.email },
                 { facebookId: facebookId }
             ]
         });
         
+        console.log("🔵 User search result:", user ? `Found user: ${user._id}` : "No user found");
+        
         if (user) {
-            // Update Facebook ID nếu chưa có
+            console.log("🔵 Updating existing user...");
             if (!user.facebookId) {
                 user.facebookId = facebookId;
                 await user.save();
+                console.log("✅ Updated user with Facebook ID");
             }
         } else {
-            // Tạo user mới từ Facebook
+            console.log("🔵 Creating new user...");
+            console.log("🔵 User data to create:", {
+                name: name || fbData.name,
+                email: email || fbData.email,
+                facebookId: facebookId
+            });
+            
             user = new userModel({
                 name: name || fbData.name,
                 email: email || fbData.email,
                 facebookId: facebookId,
-                password: "", // Facebook users không cần password
+                password: "", // Facebook users don't need password
+                cartData: {}
             });
-            await user.save();
+            
+            const savedUser = await user.save();
+            console.log("✅ New user created:", savedUser._id);
         }
         
-        // Tạo token
-        const token = createToken(user._id);
+        // Create token
+        console.log("🔵 Creating JWT token...");
         
-        res.json({
+        if (!process.env.JWT_SECRET) {
+            console.log("❌ JWT_SECRET not found in environment variables");
+            return res.json({ success: false, message: "JWT configuration error" });
+        }
+        
+        const token = createToken(user._id);
+        console.log("✅ Token created successfully");
+        
+        const responseData = {
             success: true,
             token,
             message: "Đăng nhập Facebook thành công",
@@ -296,11 +345,26 @@ const facebookLogin = async (req, res) => {
                 name: user.name,
                 email: user.email
             }
-        });
+        };
+        
+        console.log("✅ Sending success response:", JSON.stringify(responseData, null, 2));
+        res.json(responseData);
         
     } catch (error) {
-        console.error("Facebook login error:", error);
-        res.json({ success: false, message: "Lỗi server" });
+        console.error("❌ ==> Facebook Login Error Details:");
+        console.error("❌ Error Name:", error.name);
+        console.error("❌ Error Message:", error.message);
+        console.error("❌ Error Stack:", error.stack);
+        console.error("❌ Request URL:", req.url);
+        console.error("❌ Request Method:", req.method);
+        console.error("❌ Request Body:", req.body);
+        
+        res.status(500).json({ 
+            success: false, 
+            message: "Lỗi server",
+            error: process.env.NODE_ENV === 'development' ? error.message : undefined,
+            details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+        });
     }
 };
 
