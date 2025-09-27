@@ -8,30 +8,16 @@ import "dotenv/config";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import analyzeRoutes from "./routes/analyzeRoutes.js";
-const facebookDataDeletionRoute = require("./routes/facebookDataDeletion");
+import facebookDataDeletionRoute from "./routes/facebookDataDeletion.js";
 
 // app config
 const app = express();
 const port = process.env.PORT || 5000;
+
 // middlewares
 app.use(express.json({ limit: "50mb" }));
 app.use(express.urlencoded({ extended: true, limit: "50mb" }));
 app.use(
-  // cors({
-  //   origin: [
-  //     "http://localhost:5173",
-  //     "http://localhost:5175",
-  //     "http://localhost:5000",
-  //     "https://vibe-stone-admin.vercel.app",
-  //     "https://www.vibestoneoficial.store",
-  //     "https://www.facebook.com",
-  //     "https://facebook.com",
-  //     "https://static.xx.fbcdn.net",
-  //   ],
-  //   credentials: true,
-  //   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  //   allowedHeaders: ["Content-Type", "Authorization", "token"],
-  // })
   cors({
     origin: "*",
     credentials: true,
@@ -40,6 +26,7 @@ app.use(
   })
 );
 app.options("*", cors());
+
 // db connection
 connectDB();
 
@@ -51,9 +38,6 @@ app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api", analyzeRoutes);
 app.use("/api", facebookDataDeletionRoute);
-
-// Remove the static uploads middleware since we're using Cloudinary
-// app.use("/images", express.static("uploads"));
 
 app.get("/", (req, res) => {
   res.json({
@@ -85,3 +69,5 @@ app.use((err, req, res, next) => {
 app.listen(port, () => {
   console.log(`🚀 Server started on port ${port}`);
 });
+
+export default app;

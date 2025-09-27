@@ -1,6 +1,7 @@
-const express = require('express');
+import express from 'express';
+import crypto from 'crypto';
+
 const router = express.Router();
-const crypto = require('crypto');
 
 // Endpoint xử lý yêu cầu xóa dữ liệu từ Facebook
 router.post('/facebook-data-deletion', async (req, res) => {
@@ -57,4 +58,4 @@ router.get('/data-deletion-status/:confirmationCode', (req, res) => {
     });
 });
 
-module.exports = router;
+export default router;
