@@ -242,68 +242,66 @@ const resendVerification = async (req, res) => {
     }
 }
 
-// Facebook Login
+// Facebook Business Login
 const facebookLogin = async (req, res) => {
-    const { facebookId, name, email, picture } = req.body;
-    
     try {
-        // Tìm user với Facebook ID
-        let user = await userModel.findOne({ facebookId });
+        const { facebookId, name, email, accessToken } = req.body;
         
-        if (user) {
-            // User đã tồn tại với Facebook ID
-            const token = createToken(user._id);
-            return res.status(200).json({ 
-                success: true, 
-                token, 
-                userName: user.name 
-            });
+        if (!facebookId || !accessToken) {
+            return res.json({ success: false, message: "Missing Facebook data" });
         }
         
-        // Kiểm tra xem email đã được đăng ký bằng phương thức khác chưa
-        if (email) {
-            const existingUser = await userModel.findOne({ email });
-            if (existingUser && !existingUser.facebookId) {
-                // Liên kết tài khoản Facebook với tài khoản hiện có
-                existingUser.facebookId = facebookId;
-                existingUser.picture = picture;
-                await existingUser.save();
-                
-                const token = createToken(existingUser._id);
-                return res.status(200).json({ 
-                    success: true, 
-                    token, 
-                    userName: existingUser.name 
-                });
-            }
+        // Verify Facebook token với Facebook Graph API
+        const fbVerifyResponse = await fetch(`https://graph.facebook.com/me?access_token=${accessToken}&fields=id,email,name`);
+        const fbData = await fbVerifyResponse.json();
+        
+        if (fbData.error || fbData.id !== facebookId) {
+            return res.json({ success: false, message: "Invalid Facebook token" });
         }
         
-        // Tạo tài khoản mới từ Facebook
-        const newUser = new userModel({
-            name,
-            email: email || `facebook_${facebookId}@placeholder.com`,
-            facebookId,
-            picture,
-            isVerified: true, // Facebook accounts are automatically verified
-            password: await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 10) // Random password
+        // Kiểm tra user đã tồn tại chưa
+        let user = await userModel.findOne({ 
+            $or: [
+                { email: email },
+                { facebookId: facebookId }
+            ]
         });
         
-        const savedUser = await newUser.save();
-        const token = createToken(savedUser._id);
+        if (user) {
+            // Update Facebook ID nếu chưa có
+            if (!user.facebookId) {
+                user.facebookId = facebookId;
+                await user.save();
+            }
+        } else {
+            // Tạo user mới từ Facebook
+            user = new userModel({
+                name: name || fbData.name,
+                email: email || fbData.email,
+                facebookId: facebookId,
+                password: "", // Facebook users không cần password
+            });
+            await user.save();
+        }
         
-        res.status(201).json({ 
-            success: true, 
-            token, 
-            userName: savedUser.name 
+        // Tạo token
+        const token = createToken(user._id);
+        
+        res.json({
+            success: true,
+            token,
+            message: "Đăng nhập Facebook thành công",
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email
+            }
         });
         
     } catch (error) {
         console.error("Facebook login error:", error);
-        res.status(500).json({ 
-            success: false, 
-            message: "Server error during Facebook login" 
-        });
+        res.json({ success: false, message: "Lỗi server" });
     }
 };
 
-export { loginUser, registerUser, verifyEmailToken, facebookLogin };
+export { loginUser, registerUser, facebookLogin };
