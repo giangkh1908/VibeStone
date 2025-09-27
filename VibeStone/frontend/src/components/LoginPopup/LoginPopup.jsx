@@ -23,17 +23,17 @@ const LoginPopup = ({ setShowLogin }) => {
     const FB_CONFIG_ID = '2660338754299019'; // Thay bằng CONFIG_ID bạn nhận được
 
     // Thiết lập Facebook callback functions
-    useEffect(() => {
-        // Đảm bảo Facebook SDK đã load
-        window.fbAsyncInit = function() {
-            window.FB.init({
-                appId: '779759428148398',
-                cookie: true,
-                xfbml: true,
-                version: 'v23.0'
-            });
-        };
-    }, []);
+    // useEffect(() => {
+    //     // Đảm bảo Facebook SDK đã load
+    //     window.fbAsyncInit = function() {
+    //         window.FB.init({
+    //             appId: '779759428148398',
+    //             cookie: true,
+    //             xfbml: true,
+    //             version: 'v23.0'
+    //         });
+    //     };
+    // }, []);
 
     useEffect(() => {
         if (currState === "Đăng nhập" && window.FB && loginPopupRef.current) {
