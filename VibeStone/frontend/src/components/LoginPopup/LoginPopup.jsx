@@ -20,20 +20,36 @@ const LoginPopup = ({ setShowLogin }) => {
     const loginPopupRef = useRef(null)
 
     // Facebook Business Login Configuration
-    const FB_CONFIG_ID = '2660338754299019'; // Thay bằng CONFIG_ID bạn nhận được
+    const FB_CONFIG_ID = '2660338754299019';
 
-    // Thiết lập Facebook callback functions
-    // useEffect(() => {
-    //     // Đảm bảo Facebook SDK đã load
-    //     window.fbAsyncInit = function() {
-    //         window.FB.init({
-    //             appId: '779759428148398',
-    //             cookie: true,
-    //             xfbml: true,
-    //             version: 'v23.0'
-    //         });
-    //     };
-    // }, []);
+    // Khởi tạo Facebook SDK
+    useEffect(() => {
+        const initFacebookSDK = () => {
+            if (window.FB) return; // Đã được tải rồi
+
+            window.fbAsyncInit = function() {
+                window.FB.init({
+                    appId: '779759428148398',
+                    cookie: true,
+                    xfbml: true,
+                    version: 'v23.0'
+                });
+                console.log('Facebook SDK initialized');
+            };
+
+            // Load Facebook SDK script
+            (function(d, s, id) {
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) return;
+                js = d.createElement(s); 
+                js.id = id;
+                js.src = "https://connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        };
+
+        initFacebookSDK();
+    }, []);
 
     useEffect(() => {
         if (currState === "Đăng nhập" && window.FB && loginPopupRef.current) {
