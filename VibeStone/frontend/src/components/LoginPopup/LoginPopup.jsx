@@ -1,4 +1,4 @@
-import React, { useContext, useState, useEffect } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 import './LoginPopup.css'
 import { assets } from '../../assets/assets'
 import { StoreContext } from '../../Context/StoreContext'
@@ -17,6 +17,7 @@ const LoginPopup = ({ setShowLogin }) => {
         email: "",
         password: ""
     })
+    const loginPopupRef = useRef(null)
 
     // Thiết lập Facebook callback functions
     useEffect(() => {
@@ -58,6 +59,12 @@ const LoginPopup = ({ setShowLogin }) => {
             delete window.statusChangeCallback;
         };
     }, []);
+
+    useEffect(() => {
+        if (currState === "Đăng nhập" && window.FB && loginPopupRef.current) {
+            window.FB.XFBML.parse(loginPopupRef.current);
+        }
+    }, [currState]);
 
     const onChangeHandler = (event) => {
         const name = event.target.name
@@ -231,7 +238,7 @@ const LoginPopup = ({ setShowLogin }) => {
 
     return (
         <div className='login-popup'>
-            <form onSubmit={onLogin} className="login-popup-container">
+            <form ref={loginPopupRef} onSubmit={onLogin} className="login-popup-container">
                 <div className="login-popup-title">
                     <h2>{currState}</h2> 
                     <img onClick={() => setShowLogin(false)} src={assets.cross_icon} alt="" />

@@ -8,6 +8,7 @@ import "dotenv/config";
 import cartRouter from "./routes/cartRoute.js";
 import orderRouter from "./routes/orderRoute.js";
 import analyzeRoutes from "./routes/analyzeRoutes.js";
+const facebookDataDeletionRoute = require('./routes/facebookDataDeletion');
 
 // app config
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/upload", uploadRouter);
 app.use("/api/cart", cartRouter);
 app.use("/api/order", orderRouter);
 app.use("/api", analyzeRoutes);
+app.use('/api', facebookDataDeletionRoute);
 
 // Remove the static uploads middleware since we're using Cloudinary
 // app.use("/images", express.static("uploads"));
