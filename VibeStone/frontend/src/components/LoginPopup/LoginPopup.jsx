@@ -143,16 +143,25 @@ const LoginPopup = ({ setShowLogin }) => {
                 return;
             }
             
-            console.log('🔵 Calling backend API...');
-            
             try {
-                // Gọi API backend để xử lý Facebook login
-                const loginResponse = await axios.post(`${url}/api/user/facebook-login`, {
-                    facebookId: userInfo.id,
-                    name: userInfo.name,
-                    email: userInfo.email,
-                    accessToken: authResponse.accessToken
-                });
+                console.log('🔵 Calling backend API...');
+                
+                // Gọi API backend với timeout
+                const loginResponse = await axios.post(
+                    `${url}/api/user/facebook-login`, 
+                    {
+                        facebookId: userInfo.id,
+                        name: userInfo.name,
+                        email: userInfo.email,
+                        accessToken: authResponse.accessToken
+                    },
+                    {
+                        timeout: 15000, // 15 seconds timeout
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }
+                );
                 
                 console.log('🔵 Backend Response:', loginResponse.data);
                 
@@ -168,8 +177,15 @@ const LoginPopup = ({ setShowLogin }) => {
                 }
             } catch (error) {
                 console.error('❌ Backend login error:', error);
-                console.error('❌ Error response:', error.response?.data);
-                toast.error('Có lỗi xảy ra khi đăng nhập');
+                
+                if (error.code === 'ECONNABORTED') {
+                    toast.error('Kết nối tới server quá lâu, vui lòng thử lại');
+                } else if (error.response?.status === 500) {
+                    toast.error('Lỗi server, vui lòng thử lại sau');
+                } else {
+                    console.error('❌ Error response:', error.response?.data);
+                    toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi đăng nhập');
+                }
             }
             
         } catch (error) {
