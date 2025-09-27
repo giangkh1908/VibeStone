@@ -346,6 +346,7 @@ const facebookLogin = async (req, res) => {
                     email: email || fbData.email,
                     facebookId: facebookId,
                     password: "",
+                    isVerified: true, // Facebook users tự động verified
                     cartData: {}
                 });
                 await user.save();
