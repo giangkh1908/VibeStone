@@ -22,17 +22,19 @@
     nonce="1785232628"></script>
   <script type="module" src="/src/main.jsx"></script>
 
+
   <script>
     window.fbAsyncInit = function () {
       FB.init({
-        appId: '1785232628750195',
+        appId: '2221989094893406',
         cookie: true,
         xfbml: true,
         version: 'v23.0'
       });
 
       FB.AppEvents.logPageView();
-
+      // Parse XFBML sau khi SDK được tải
+      FB.XFBML.parse();
     };
 
     (function (d, s, id) {

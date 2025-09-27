@@ -10,6 +10,7 @@ const LoginPopup = ({ setShowLogin }) => {
 
     const { setToken, url, loadCartData } = useContext(StoreContext)
     const [currState, setCurrState] = useState("Đăng ký");
+    const [isLoading, setIsLoading] = useState(false);
 
     const [data, setData] = useState({
         name: "",
@@ -17,16 +18,45 @@ const LoginPopup = ({ setShowLogin }) => {
         password: ""
     })
 
-    // Initialize Facebook SDK
+    // Thiết lập Facebook callback functions
     useEffect(() => {
+        // Định nghĩa hàm checkLoginState trên window object
+        window.checkLoginState = function() {
+            if (window.FB) {
+                window.FB.getLoginStatus(function(response) {
+                    statusChangeCallback(response);
+                });
+            }
+        };
+
+        // Định nghĩa hàm statusChangeCallback
+        window.statusChangeCallback = function(response) {
+            console.log('Facebook status change:', response);
+            
+            if (response.status === 'connected') {
+                // User đã đăng nhập Facebook và authorize app
+                console.log('User is connected:', response.authResponse);
+                handleFacebookUserInfo(response.authResponse);
+            } else if (response.status === 'not_authorized') {
+                // User đã đăng nhập Facebook nhưng chưa authorize app
+                console.log('User logged into Facebook but not authorized app');
+                notifyError("Bạn cần cấp quyền để đăng nhập bằng Facebook");
+            } else {
+                // User chưa đăng nhập Facebook
+                console.log('User not logged into Facebook');
+            }
+        };
+
+        // Parse Facebook XFBML khi component mount
         if (window.FB) {
-            window.FB.init({
-                appId: '1785232628750195',
-                cookie: true,
-                xfbml: true,
-                version: 'v23.0'
-            });
+            window.FB.XFBML.parse();
         }
+
+        // Cleanup function
+        return () => {
+            delete window.checkLoginState;
+            delete window.statusChangeCallback;
+        };
     }, []);
 
     const onChangeHandler = (event) => {
@@ -37,6 +67,7 @@ const LoginPopup = ({ setShowLogin }) => {
 
     const onLogin = async (e) => {
         e.preventDefault()
+        setIsLoading(true);
 
         let new_url = url;
         if (currState === "Đăng nhập") {
@@ -48,7 +79,6 @@ const LoginPopup = ({ setShowLogin }) => {
 
         // Nếu là đăng ký - hiển thị toast và đóng popup ngay lập tức
         if (currState === "Đăng ký") {
-            // Hiển thị toast ngay
             toast.success("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.", {
                 position: "top-right",
                 autoClose: 7000,
@@ -58,15 +88,13 @@ const LoginPopup = ({ setShowLogin }) => {
                 draggable: true,
             });
             
-            // Đóng popup ngay
             setShowLogin(false);
-            
-            // Gọi API đăng ký ngầm (không await)
             registerUser(new_url, data);
+            setIsLoading(false);
             return;
         }
 
-        // Xử lý đăng nhập bình thường (chờ API response)
+        // Xử lý đăng nhập bình thường
         try {
             const response = await axios.post(new_url, data);
             if (response.data.success) {
@@ -83,7 +111,6 @@ const LoginPopup = ({ setShowLogin }) => {
                     return;
                 }
                 
-                // Lưu token và đăng nhập thành công
                 setToken(response.data.token)
                 localStorage.setItem("token", response.data.token)
                 await loadCartData({token: response.data.token})
@@ -106,6 +133,8 @@ const LoginPopup = ({ setShowLogin }) => {
             } else {
                 notifyError(error.response?.data?.message || "Đã xảy ra lỗi")
             }
+        } finally {
+            setIsLoading(false);
         }
     }
 
@@ -115,7 +144,6 @@ const LoginPopup = ({ setShowLogin }) => {
             const response = await axios.post(url, userData);
             console.log('Registration response:', response.data);
             
-            // Nếu có lỗi thực sự (không phải needVerification), có thể hiển thị toast error
             if (!response.data.success && !response.data.needVerification) {
                 toast.error("Có lỗi xảy ra khi đăng ký: " + response.data.message, {
                     position: "top-right",
@@ -124,7 +152,6 @@ const LoginPopup = ({ setShowLogin }) => {
             }
         } catch (error) {
             console.error('Registration error:', error);
-            // Chỉ hiển thị lỗi nghiêm trọng
             if (!error.response?.data?.needVerification) {
                 toast.error("Có lỗi xảy ra khi đăng ký. Vui lòng thử lại.", {
                     position: "top-right",
@@ -134,82 +161,152 @@ const LoginPopup = ({ setShowLogin }) => {
         }
     }
 
-    // Hàm xử lý đăng nhập Facebook
-    const handleFacebookLogin = () => {
-        if (!window.FB) {
-            notifyError("Facebook SDK chưa được tải");
-            return;
+    // Callback được gọi khi trạng thái Facebook thay đổi
+    const statusChangeCallback = (response) => {
+        console.log('Status change callback:', response);
+        
+        if (response.status === 'connected') {
+            setIsLoading(true);
+            handleFacebookUserInfo(response.authResponse);
         }
+    };
 
-        window.FB.login((response) => {
-            if (response.authResponse) {
-                // Lấy thông tin profile
-                window.FB.api('/me', { fields: 'name,email,picture' }, async (userInfo) => {
-                    try {
-                        // Gửi thông tin Facebook tới backend
-                        const loginResponse = await axios.post(url + "/api/user/facebook-login", {
-                            facebookId: userInfo.id,
-                            name: userInfo.name,
-                            email: userInfo.email,
-                            picture: userInfo.picture?.data?.url
-                        });
+    // Xử lý thông tin user từ Facebook
+    const handleFacebookUserInfo = (authResponse) => {
+        console.log('Getting user info with access token:', authResponse.accessToken);
 
-                        if (loginResponse.data.success) {
-                            setToken(loginResponse.data.token)
-                            localStorage.setItem("token", loginResponse.data.token)
-                            await loadCartData({token: loginResponse.data.token})
-                            notifyLogin(userInfo.name)
-                            setShowLogin(false)
-                        } else {
-                            notifyError(loginResponse.data.message)
-                        }
-                    } catch (error) {
-                        notifyError("Đăng nhập Facebook thất bại")
-                        console.error('Facebook login error:', error)
-                    }
-                });
-            } else {
-                console.log('User cancelled login or did not fully authorize.');
+        window.FB.api('/me', { 
+            fields: 'id,name,email,picture.width(200).height(200)',
+            access_token: authResponse.accessToken 
+        }, async (userInfo) => {
+            console.log('Facebook user info:', userInfo);
+
+            if (userInfo.error) {
+                console.error('Facebook API error:', userInfo.error);
+                notifyError("Không thể lấy thông tin từ Facebook");
+                setIsLoading(false);
+                return;
             }
-        }, { scope: 'email' });
-    }
+
+            try {
+                // Chuẩn bị dữ liệu gửi lên server
+                const facebookData = {
+                    facebookId: userInfo.id,
+                    name: userInfo.name,
+                    email: userInfo.email || null,
+                    picture: userInfo.picture?.data?.url || null,
+                    accessToken: authResponse.accessToken,
+                    userID: authResponse.userID
+                };
+
+                console.log('Sending to backend:', facebookData);
+
+                // Gửi thông tin Facebook tới backend
+                const loginResponse = await axios.post(url + "/api/user/facebook-login", facebookData);
+
+                console.log('Backend response:', loginResponse.data);
+
+                if (loginResponse.data.success) {
+                    // Đăng nhập thành công
+                    setToken(loginResponse.data.token)
+                    localStorage.setItem("token", loginResponse.data.token)
+                    await loadCartData({token: loginResponse.data.token})
+                    notifyLogin(userInfo.name)
+                    setShowLogin(false)
+                } else {
+                    notifyError(loginResponse.data.message || "Đăng nhập Facebook thất bại")
+                }
+            } catch (error) {
+                console.error('Facebook login error:', error);
+                if (error.response?.data?.message) {
+                    notifyError(error.response.data.message);
+                } else {
+                    notifyError("Đăng nhập Facebook thất bại. Vui lòng thử lại.");
+                }
+            } finally {
+                setIsLoading(false);
+            }
+        });
+    };
 
     return (
         <div className='login-popup'>
             <form onSubmit={onLogin} className="login-popup-container">
                 <div className="login-popup-title">
-                    <h2>{currState}</h2> <img onClick={() => setShowLogin(false)} src={assets.cross_icon} alt="" />
+                    <h2>{currState}</h2> 
+                    <img onClick={() => setShowLogin(false)} src={assets.cross_icon} alt="" />
                 </div>
                 <div className="login-popup-inputs">
-                    {currState === "Đăng ký" ? <input name='name' onChange={onChangeHandler} value={data.name} type="text" placeholder='Tên tài khoản' required /> : <></>}
-                    <input name='email' onChange={onChangeHandler} value={data.email} type="email" placeholder='Email của bạn' required />
-                    <input name='password' onChange={onChangeHandler} value={data.password} type="password" placeholder='Mật khẩu' required />
+                    {currState === "Đăng ký" ? 
+                        <input 
+                            name='name' 
+                            onChange={onChangeHandler} 
+                            value={data.name} 
+                            type="text" 
+                            placeholder='Tên tài khoản' 
+                            required 
+                            disabled={isLoading}
+                        /> : <></>
+                    }
+                    <input 
+                        name='email' 
+                        onChange={onChangeHandler} 
+                        value={data.email} 
+                        type="email" 
+                        placeholder='Email của bạn' 
+                        required 
+                        disabled={isLoading}
+                    />
+                    <input 
+                        name='password' 
+                        onChange={onChangeHandler} 
+                        value={data.password} 
+                        type="password" 
+                        placeholder='Mật khẩu' 
+                        required 
+                        disabled={isLoading}
+                    />
                 </div>
-                <button type="submit">{currState === "Đăng nhập" ? "Đăng nhập" : "Đăng ký"}</button>
+                <button type="submit" disabled={isLoading}>
+                    {isLoading ? "Đang xử lý..." : (currState === "Đăng nhập" ? "Đăng nhập" : "Đăng ký")}
+                </button>
                 
                 {currState === "Đăng nhập" && (
                     <div className="facebook-login-section">
                         <div className="login-divider">
                             <span>hoặc</span>
                         </div>
-                        <button 
-                            type="button"
-                            className="facebook-login-button"
-                            onClick={handleFacebookLogin}
-                        >
-                            <i className="fab fa-facebook-f"></i>
-                            Đăng nhập bằng Facebook
-                        </button>
+                        {/* Facebook Login Button chính thức */}
+                        <div className="fb-login-wrapper">
+                            <div 
+                                className="fb-login-button" 
+                                data-width=""
+                                data-size="large"
+                                data-button-type="login_with"
+                                data-layout="default"
+                                data-auto-logout-link="false"
+                                data-use-continue-as="false"
+                                data-scope="public_profile,email"
+                                data-onlogin="checkLoginState();"
+                            ></div>
+                        </div>
+                        
+                        {/* Loading indicator cho Facebook */}
+                        {isLoading && (
+                            <div className="facebook-loading">
+                                <p>Đang xử lý đăng nhập Facebook...</p>
+                            </div>
+                        )}
                     </div>
                 )}
                 
                 <div className="login-popup-condition">
-                    <input type="checkbox" name="" id="" required/>
+                    <input type="checkbox" name="" id="" required disabled={isLoading}/>
                     <p>Đồng ý với bảo mật và điều khoản!</p>
                 </div>
                 {currState === "Đăng nhập"
-                    ? <p>Chưa có tài khoản? <span onClick={() => setCurrState('Đăng ký')}>Đăng ký</span></p>
-                    : <p>Đã có tài khoản? <span onClick={() => setCurrState('Đăng nhập')}>Đăng nhập</span></p>
+                    ? <p>Chưa có tài khoản? <span onClick={() => !isLoading && setCurrState('Đăng ký')}>Đăng ký</span></p>
+                    : <p>Đã có tài khoản? <span onClick={() => !isLoading && setCurrState('Đăng nhập')}>Đăng nhập</span></p>
                 }
             </form>
         </div>
