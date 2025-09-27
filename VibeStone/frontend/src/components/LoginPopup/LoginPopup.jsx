@@ -122,58 +122,60 @@ const LoginPopup = ({ setShowLogin }) => {
         );
     };
 
-    // Xử lý khi Facebook login thành công
+    // Xử lý khi Facebook login thành công - thêm chi tiết logging
     const handleFacebookLoginSuccess = async (response) => {
         try {
             const { authResponse } = response;
+            console.log("🔵 Facebook Auth Response:", authResponse);
             
-            // Lấy thông tin user từ Facebook Graph API với access token trực tiếp
-            window.FB.api(
-                '/me', 
-                { 
-                    fields: 'name,email',
-                    access_token: authResponse.accessToken // Truyền token trực tiếp
-                }, 
-                async function(userInfo) {
-                    console.log('Facebook User Info:', userInfo);
-                    
-                    if (userInfo.error) {
-                        console.error('Facebook API Error:', userInfo.error);
-                        toast.error('Không thể lấy thông tin từ Facebook');
-                        setFbLoading(false);
-                        return;
-                    }
-                    
-                    try {
-                        // Gọi API backend để xử lý Facebook login
-                        const loginResponse = await axios.post(`${url}/api/user/facebook-login`, {
-                            facebookId: userInfo.id,
-                            name: userInfo.name,
-                            email: userInfo.email,
-                            accessToken: authResponse.accessToken
-                        });
-                        
-                        if (loginResponse.data.success) {
-                            setToken(loginResponse.data.token);
-                            localStorage.setItem('token', loginResponse.data.token);
-                            await loadCartData(loginResponse.data.token);
-                            setShowLogin(false);
-                            toast.success('Đăng nhập Facebook thành công!');
-                        } else {
-                            toast.error(loginResponse.data.message || 'Đăng nhập thất bại');
-                        }
-                    } catch (error) {
-                        console.error('Backend login error:', error);
-                        toast.error('Có lỗi xảy ra khi đăng nhập');
-                    }
-                    
-                    setFbLoading(false);
-                }
+            // Sử dụng fetch để tránh warning về access token
+            const fbResponse = await fetch(
+                `https://graph.facebook.com/me?access_token=${authResponse.accessToken}&fields=id,name,email`
             );
+            const userInfo = await fbResponse.json();
+            
+            console.log('🔵 Facebook User Info:', userInfo);
+            
+            if (userInfo.error) {
+                console.error('❌ Facebook API Error:', userInfo.error);
+                toast.error('Không thể lấy thông tin từ Facebook');
+                setFbLoading(false);
+                return;
+            }
+            
+            console.log('🔵 Calling backend API...');
+            
+            try {
+                // Gọi API backend để xử lý Facebook login
+                const loginResponse = await axios.post(`${url}/api/user/facebook-login`, {
+                    facebookId: userInfo.id,
+                    name: userInfo.name,
+                    email: userInfo.email,
+                    accessToken: authResponse.accessToken
+                });
+                
+                console.log('🔵 Backend Response:', loginResponse.data);
+                
+                if (loginResponse.data.success) {
+                    setToken(loginResponse.data.token);
+                    localStorage.setItem('token', loginResponse.data.token);
+                    await loadCartData(loginResponse.data.token);
+                    setShowLogin(false);
+                    toast.success('Đăng nhập Facebook thành công!');
+                } else {
+                    console.error('❌ Backend login failed:', loginResponse.data);
+                    toast.error(loginResponse.data.message || 'Đăng nhập thất bại');
+                }
+            } catch (error) {
+                console.error('❌ Backend login error:', error);
+                console.error('❌ Error response:', error.response?.data);
+                toast.error('Có lỗi xảy ra khi đăng nhập');
+            }
             
         } catch (error) {
-            console.error('Facebook login error:', error);
+            console.error('❌ Facebook login error:', error);
             toast.error('Có lỗi xảy ra khi đăng nhập Facebook');
+        } finally {
             setFbLoading(false);
         }
     };

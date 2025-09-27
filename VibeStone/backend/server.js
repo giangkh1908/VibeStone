@@ -56,13 +56,35 @@ app.get("/api/test", (req, res) => {
   });
 });
 
-// Error handling middleware
+// Error handling middleware - cập nhật để hiển thị chi tiết lỗi
 app.use((err, req, res, next) => {
-  console.error("❌ Server Error:", err);
+  console.error("❌ Server Error Details:");
+  console.error("Error Message:", err.message);
+  console.error("Error Stack:", err.stack);
+  console.error("Request URL:", req.url);
+  console.error("Request Method:", req.method);
+  console.error("Request Body:", req.body);
+  console.error("Request Headers:", req.headers);
+
   res.status(500).json({
     success: false,
     message: "Đã xảy ra lỗi server",
-    error: err.message,
+    error:
+      process.env.NODE_ENV === "development"
+        ? {
+            message: err.message,
+            stack: err.stack,
+          }
+        : "Internal server error",
+  });
+});
+
+// 404 handler
+app.use("*", (req, res) => {
+  console.log(`❌ 404 - Route not found: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({
+    success: false,
+    message: `Route ${req.method} ${req.originalUrl} not found`,
   });
 });
 
