@@ -1,0 +1,111 @@
+.place-order{
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: 50px;
+    margin: 100px 0px;
+}
+.place-order-left{
+    width: 100%;
+    max-width: max(30%,500px);
+}
+.place-order-left .title{
+    font-size: 30px;
+    font-weight: 600;
+    margin-bottom: 50px;
+}
+.place-order-left input, .place-order-left select{
+    margin-bottom: 15px;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #C5C5C5;
+    border-radius: 4px;
+    outline-color: tomato;
+    font-size: 14px;
+}
+
+.place-order-left .address-select {
+    background-color: white;
+    cursor: pointer;
+}
+
+.place-order-left .address-select:disabled {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+    color: #999;
+}
+
+.place-order-left .readonly-input {
+    background-color: #f5f5f5;
+    color: #666;
+    cursor: not-allowed;
+}
+
+.place-order-left .multi-field{
+    display: flex;
+    gap: 10px;
+}
+.place-order-right{
+    width: 100%;
+    max-width: max(40%,500px);
+}
+.place-order-submit{
+    margin-top: 50px;
+    border: none;
+    background-color: tomato;
+    color: white;
+    padding: 12px 30px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.place-order-submit:hover {
+    background-color: #e55a4f;
+}
+
+.place-order-submit:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.payment{
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 15px;
+}
+.payment h2{
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+.payment .payment-option{
+    display: flex;
+    align-items: center;
+    gap: 10px ;
+    border: 1px solid tomato;
+    padding: 15px;
+    border-radius: 4px;
+    min-width: 300px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+.payment .payment-option:hover{
+    background-color:  #ffe7de;
+}
+
+/* Loading states */
+.address-select option:first-child {
+    color: #999;
+    font-style: italic;
+}
+
+@media (max-width:700px) {
+    .place-order{
+        flex-direction: column;
+    }
+    
+    .place-order-left .multi-field{
+        flex-direction: column;
+    }
+}

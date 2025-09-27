@@ -1,0 +1,21 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/server.js"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production",
+    "FRONTEND_URL": "https://vibestone.vercel.app",
+    "BACKEND_URL": "https://vibe-stone-backend.vercel.app",
+    "ADMIN_URL": "https://vibe-stone-admin.vercel.app"
+  }
+}

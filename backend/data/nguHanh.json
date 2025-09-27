@@ -1,0 +1,73 @@
+
+{
+  "Kim": {
+    "name": "Kim",
+    "desc": "Tượng trưng cho kim loại, biểu thị sự cứng cáp, kiên định và sắc sảo. Người mệnh Kim thường có tư duy logic, khả năng phân tích tốt và tinh thần độc lập.",
+    "positive": ["Tư duy sắc bén", "Ý chí kiên định", "Trung thành", "Đáng tin cậy"],
+    "negative": ["Cứng nhắc", "Thích cạnh tranh", "Ít biểu lộ cảm xúc"],
+    "careers": ["Tài chính, kinh doanh, kỹ thuật", "Luật sư, thẩm phán", "Lãnh đạo, quản lý"],
+    "colors": {
+      "compatible": ["trắng", "bạc", "vàng kim"],
+      "beneficial": ["vàng đất", "nâu đất"],
+      "avoid": ["đỏ", "hồng", "tím"]
+    },
+    "directions": ["Tây", "Tây Bắc"],
+    "numbers": [6, 7]
+  },
+  "Mộc": {
+    "name": "Mộc",
+    "desc": "Tượng trưng cho cây cối, biểu thị sự phát triển, lòng nhân ái, sáng tạo và linh hoạt. Người mệnh Mộc có khả năng thích nghi cao, năng động, giàu ý tưởng và thích khám phá.",
+    "positive": ["Sáng tạo", "Hòa đồng", "Thích nghi cao", "Linh hoạt", "Cầu tiến"],
+    "negative": ["Thiếu quyết đoán", "Cảm xúc thất thường", "Quá tham vọng"],
+    "careers": ["Thiết kế, kiến trúc, nghệ thuật", "Giáo dục, nghiên cứu", "Phát triển cộng đồng"],
+    "colors": {
+      "compatible": ["xanh lá", "đen", "xanh dương"],
+      "beneficial": ["đen", "xanh dương"],
+      "avoid": ["trắng", "bạc", "vàng kim"]
+    },
+    "directions": ["Đông", "Đông Nam"],
+    "numbers": [3, 4]
+  },
+  "Thủy": {
+    "name": "Thủy",
+    "desc": "Tượng trưng cho nước, sự uyển chuyển, thông minh và khả năng thích nghi. Người mệnh Thủy thường sâu sắc, nhạy cảm và giỏi giao tiếp.",
+    "positive": ["Thông minh", "Linh hoạt", "Giao tiếp tốt", "Trực giác mạnh"],
+    "negative": ["Thiếu kiên định", "Hay lo lắng", "Cuốn theo cảm xúc"],
+    "careers": ["Quan hệ công chúng, ngoại giao", "Hàng hải, du lịch", "Âm nhạc, hội họa"],
+    "colors": {
+      "compatible": ["đen", "xanh dương", "trắng", "bạc"],
+      "beneficial": ["trắng", "bạc"],
+      "avoid": ["vàng đất", "nâu đất"]
+    },
+    "directions": ["Bắc"],
+    "numbers": [1, 6]
+  },
+  "Hỏa": {
+    "name": "Hỏa",
+    "desc": "Tượng trưng cho lửa, biểu thị nhiệt huyết, đam mê và năng lượng tích cực. Người mệnh Hỏa thường sôi nổi, dám nghĩ dám làm và đầy nhiệt huyết.",
+    "positive": ["Năng động", "Cuốn hút", "Tinh thần thép"],
+    "negative": ["Nóng nảy", "Thiếu kiên nhẫn", "Tự cao"],
+    "careers": ["Quảng cáo, marketing", "Công nghiệp năng lượng", "Diễn giả, huấn luyện viên"],
+    "colors": {
+      "compatible": ["đỏ", "hồng", "tím", "xanh lá"],
+      "beneficial": ["xanh lá", "đỏ"],
+      "avoid": ["đen", "xanh dương"]
+    },
+    "directions": ["Nam"],
+    "numbers": [9]
+  },
+  "Thổ": {
+    "name": "Thổ",
+    "desc": "Tượng trưng cho đất, sự ổn định, nuôi dưỡng và đáng tin cậy. Người mệnh Thổ thường điềm tĩnh, trung thành và có trách nhiệm.",
+    "positive": ["Đáng tin cậy", "Trung thành", "Ổn định", "Thực tế"],
+    "negative": ["Bảo thủ", "Chậm thích nghi", "Dễ bị lợi dụng"],
+    "careers": ["Bất động sản, xây dựng", "Giáo viên, nhân sự", "Tư vấn, chăm sóc khách hàng"],
+    "colors": {
+      "compatible": ["vàng đất", "nâu đất", "đỏ", "hồng"],
+      "beneficial": ["đỏ", "hồng"],
+      "avoid": ["xanh lá", "xanh ngọc"]
+    },
+    "directions": ["Đông Bắc", "Tây Nam"],
+    "numbers": [2, 5, 8]
+  }
+}

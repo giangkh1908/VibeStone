@@ -1,0 +1,14 @@
+{
+  "Tý": {"name": "Tý", "hanTu": "子", "nguHanh": "Thủy", "amDuong": "Dương"},
+  "Sửu": {"name": "Sửu", "hanTu": "丑", "nguHanh": "Thổ", "amDuong": "Âm"},
+  "Dần": {"name": "Dần", "hanTu": "寅", "nguHanh": "Mộc", "amDuong": "Dương"},
+  "Mão": {"name": "Mão", "hanTu": "卯", "nguHanh": "Mộc", "amDuong": "Âm"},
+  "Thìn": {"name": "Thìn", "hanTu": "辰", "nguHanh": "Thổ", "amDuong": "Dương"},
+  "Tỵ": {"name": "Tỵ", "hanTu": "巳", "nguHanh": "Hỏa", "amDuong": "Âm"},
+  "Ngọ": {"name": "Ngọ", "hanTu": "午", "nguHanh": "Hỏa", "amDuong": "Dương"},
+  "Mùi": {"name": "Mùi", "hanTu": "未", "nguHanh": "Thổ", "amDuong": "Âm"},
+  "Thân": {"name": "Thân", "hanTu": "申", "nguHanh": "Kim", "amDuong": "Dương"},
+  "Dậu": {"name": "Dậu", "hanTu": "酉", "nguHanh": "Kim", "amDuong": "Âm"},
+  "Tuất": {"name": "Tuất", "hanTu": "戌", "nguHanh": "Thổ", "amDuong": "Dương"},
+  "Hợi": {"name": "Hợi", "hanTu": "亥", "nguHanh": "Thủy", "amDuong": "Âm"}
+}

@@ -1,0 +1,48 @@
+/* Đã import các phông chữ trong index.html */
+*{
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  font-family: 'Cormorant Garamond', serif;
+}
+body{
+  min-height: 100vh;
+  background-color: #f9f7f2;
+  color: #333;
+}
+a{
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Cinzel', serif;
+  font-weight: 500;
+}
+
+p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+button, .btn, input[type="submit"] {
+  font-family: 'Philosopher', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+hr{
+  border: none;
+  height: 1px;
+  background-color: #A9A9A9;
+}
+.app-content{
+  display: flex;
+}
+.flex-col{
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cursor{
+  cursor: pointer;
+}

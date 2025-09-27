@@ -1,0 +1,79 @@
+/* Đã import các phông chữ trong index.html */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Inter', sans-serif;
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  color: #333;
+  background-color: #f9f7f2;
+  font-family: 'Inter', sans-serif !important;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+p {
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+button, .btn {
+  font-family: 'Inter', sans-serif;
+  letter-spacing: 0.5px;
+}
+
+.app {
+  width: 80%;
+  margin: auto;
+  padding-top: 80px;
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@media (max-width:1050px) {
+  .app {
+    width: 90%;
+    padding-top: 70px;
+  }
+}
+
+@media (max-width: 750px) {
+  .app {
+    width: 100%;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top: 60px;
+  }
+  p {
+    font-size: 0.98rem;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-size: 1.1em;
+  }
+  button, .btn {
+    font-size: 0.98rem;
+    padding: 0.6em 1.2em;
+  }
+}
